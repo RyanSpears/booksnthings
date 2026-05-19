@@ -1,0 +1,88 @@
+@page "/settings"
+@rendermode InteractiveServer
+@inject BookNThings.Infrastructure.Health.ConnectionStatusService StatusService
+@inject ILogger<Settings> Logger
+
+<PageTitle>Settings | BookNThings</PageTitle>
+
+<MudStack Spacing="3">
+    <MudText Typo="Typo.h3">Settings</MudText>
+
+    <MudGrid>
+        <MudItem xs="12" md="6">
+            <MudPaper Class="panel" Elevation="0">
+                <MudText Typo="Typo.h6">OpenAI</MudText>
+                <MudList T="string" Dense="true">
+                    <MudListItem Icon="@StatusIcon(StatusService.IsOpenAiConfigured)" IconColor="@StatusColor(StatusService.IsOpenAiConfigured)">
+                        API key: @ConfiguredText(StatusService.IsOpenAiConfigured)
+                    </MudListItem>
+                    <MudListItem Icon="@StatusIcon(StatusService.IsOpenAiModelConfigured)" IconColor="@StatusColor(StatusService.IsOpenAiModelConfigured)">
+                        Model: @ConfiguredText(StatusService.IsOpenAiModelConfigured)
+                    </MudListItem>
+                </MudList>
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12" md="6">
+            <MudPaper Class="panel" Elevation="0">
+                <MudText Typo="Typo.h6">MongoDB Atlas</MudText>
+                <MudList T="string" Dense="true">
+                    <MudListItem Icon="@StatusIcon(StatusService.IsMongoConfigured)" IconColor="@StatusColor(StatusService.IsMongoConfigured)">
+                        Connection string: @ConfiguredText(StatusService.IsMongoConfigured)
+                    </MudListItem>
+                    <MudListItem Icon="@StatusIcon(mongoCanConnect == true)" IconColor="@StatusColor(mongoCanConnect == true)">
+                        Connection: @MongoConnectionText
+                    </MudListItem>
+                </MudList>
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="CheckMongoAsync" Disabled="@isCheckingMongo" StartIcon="@Icons.Material.Filled.Cable">
+                    Check connection
+                </MudButton>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+
+    @if (!string.IsNullOrWhiteSpace(errorMessage))
+    {
+        <MudAlert Severity="Severity.Error" Variant="Variant.Outlined">@errorMessage</MudAlert>
+    }
+</MudStack>
+
+@code {
+    private bool isCheckingMongo;
+    private bool? mongoCanConnect;
+    private string? errorMessage;
+
+    private string MongoConnectionText => mongoCanConnect switch
+    {
+        true => "Connected",
+        false => "Not connected",
+        null => "Not checked"
+    };
+
+    private static string ConfiguredText(bool value) => value ? "Configured" : "Missing";
+
+    private static Color StatusColor(bool value) => value ? Color.Success : Color.Error;
+
+    private static string StatusIcon(bool value) => value ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Error;
+
+    private async Task CheckMongoAsync()
+    {
+        errorMessage = null;
+        isCheckingMongo = true;
+
+        try
+        {
+            mongoCanConnect = await StatusService.CanConnectToMongoAsync(CancellationToken.None);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "MongoDB connection check failed.");
+            mongoCanConnect = false;
+            errorMessage = "MongoDB connection failed. Check your Atlas allowlist, credentials, and environment variables.";
+        }
+        finally
+        {
+            isCheckingMongo = false;
+        }
+    }
+}

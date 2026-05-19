@@ -1,0 +1,216 @@
+@page "/search"
+@rendermode InteractiveServer
+@inject BookSearchOrchestrator SearchOrchestrator
+@inject IBookRepository Repository
+@inject ILogger<Search> Logger
+
+<PageTitle>Search | BookNThings</PageTitle>
+
+<MudStack Spacing="3">
+    <MudText Typo="Typo.h3">Search Books</MudText>
+
+    <MudPaper Class="panel" Elevation="0">
+        <MudStack Spacing="2">
+            <MudTextField @bind-Value="query"
+                          Label="Search query"
+                          Placeholder="Try: thoughtful space opera with political intrigue"
+                          Variant="Variant.Outlined"
+                          Disabled="@isSearching"
+                          Immediate="true" />
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SearchAsync" Disabled="@isSearching" StartIcon="@Icons.Material.Filled.Search">
+                @if (isSearching)
+                {
+                    <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="button-spinner" />
+                    <span>Searching</span>
+                }
+                else
+                {
+                    <span>Search</span>
+                }
+            </MudButton>
+
+            @if (!string.IsNullOrWhiteSpace(errorMessage))
+            {
+                <MudAlert Severity="Severity.Error" Variant="Variant.Outlined">@errorMessage</MudAlert>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(successMessage))
+            {
+                <MudAlert Severity="Severity.Success" Variant="Variant.Outlined">@successMessage</MudAlert>
+            }
+        </MudStack>
+    </MudPaper>
+
+    @if (results.Count > 0)
+    {
+        <MudGrid>
+            @foreach (var book in results)
+            {
+                <MudItem xs="12" md="6" lg="4">
+                    <MudCard Class="book-card" Elevation="0">
+                        <MudCardContent>
+                            <MudText Typo="Typo.h6">@book.Title</MudText>
+                            <MudText Typo="Typo.subtitle2" Class="muted-text">@book.Author</MudText>
+                            <MudText Typo="Typo.body2">@book.Description</MudText>
+                            <MudDivider Class="divider-space" />
+                            <MudGrid>
+                                <MudItem xs="6">
+                                    <MudText Typo="Typo.caption" Class="muted-text">Published</MudText>
+                                    <MudText Typo="Typo.body2"><b>@book.DatePublished.ToString("yyyy-MM-dd")</b></MudText>
+                                </MudItem>
+                                <MudItem xs="6">
+                                    <MudText Typo="Typo.caption" Class="muted-text">Pages</MudText>
+                                    <MudText Typo="Typo.body2"><b>@book.Pages</b></MudText>
+                                </MudItem>
+                            </MudGrid>
+                            <MudStack Row="true" Spacing="1" Class="tag-row">
+                                @foreach (var genre in book.Genres)
+                                {
+                                    <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined">@genre</MudChip>
+                                }
+                            </MudStack>
+                        </MudCardContent>
+                        <MudCardActions>
+                            @if (IsSelectingReadDate(book))
+                            {
+                                <MudStack Spacing="2" Class="save-date-panel">
+                                    <MudDatePicker Label="Date read"
+                                                   Date="@GetReadDate(book)"
+                                                   DateChanged="date => SetReadDate(book, date)"
+                                                   Variant="Variant.Outlined"
+                                                   Disabled="@savingKeys.Contains(GetBookKey(book))" />
+                                    <MudStack Row="true" Spacing="1" Class="action-row">
+                                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="() => SaveAsync(book)" Disabled="@savingKeys.Contains(GetBookKey(book))" StartIcon="@Icons.Material.Filled.BookmarkAdd">
+                                            @(savingKeys.Contains(GetBookKey(book)) ? "Saving" : "Save read")
+                                        </MudButton>
+                                        <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="() => CancelReadDateSelection(book)" Disabled="@savingKeys.Contains(GetBookKey(book))">
+                                            Cancel
+                                        </MudButton>
+                                    </MudStack>
+                                </MudStack>
+                            }
+                            else
+                            {
+                                <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="() => StartReadDateSelection(book)" StartIcon="@Icons.Material.Filled.BookmarkAdd">
+                                    Save
+                                </MudButton>
+                            }
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+            }
+        </MudGrid>
+    }
+</MudStack>
+
+@code {
+    private string query = "";
+    private string? errorMessage;
+    private string? successMessage;
+    private bool isSearching;
+    private readonly List<Book> results = [];
+    private readonly Dictionary<string, DateTime?> readDates = [];
+    private readonly HashSet<string> selectingReadDateKeys = [];
+    private readonly HashSet<string> savingKeys = [];
+
+    private async Task SearchAsync()
+    {
+        errorMessage = null;
+        successMessage = null;
+        results.Clear();
+
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            errorMessage = "Enter a search query before searching.";
+            return;
+        }
+
+        try
+        {
+            isSearching = true;
+            var books = await SearchOrchestrator.SearchAsync(query, CancellationToken.None);
+            results.AddRange(books);
+            readDates.Clear();
+            selectingReadDateKeys.Clear();
+            savingKeys.Clear();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Book search failed.");
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            isSearching = false;
+        }
+    }
+
+    private async Task SaveAsync(Book book)
+    {
+        errorMessage = null;
+        successMessage = null;
+        var key = GetBookKey(book);
+        var dateRead = GetReadDate(book) ?? DateTime.Today;
+        savingKeys.Add(key);
+
+        try
+        {
+            var bookRead = new Book
+            {
+                Id = book.Id,
+                Title = book.Title,
+                Description = book.Description,
+                Pages = book.Pages,
+                DatePublished = book.DatePublished,
+                DateRead = dateRead.Date,
+                Genres = [.. book.Genres],
+                Author = book.Author
+            };
+
+            await Repository.SaveAsync(bookRead, CancellationToken.None);
+            successMessage = $"Saved {book.Title}.";
+            selectingReadDateKeys.Remove(key);
+            readDates.Remove(key);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Saving book failed.");
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            savingKeys.Remove(key);
+        }
+    }
+
+    private void StartReadDateSelection(Book book)
+    {
+        var key = GetBookKey(book);
+        errorMessage = null;
+        successMessage = null;
+        selectingReadDateKeys.Add(key);
+        readDates.TryAdd(key, DateTime.Today);
+    }
+
+    private void CancelReadDateSelection(Book book)
+    {
+        var key = GetBookKey(book);
+        selectingReadDateKeys.Remove(key);
+        readDates.Remove(key);
+    }
+
+    private bool IsSelectingReadDate(Book book) => selectingReadDateKeys.Contains(GetBookKey(book));
+
+    private DateTime? GetReadDate(Book book)
+    {
+        var key = GetBookKey(book);
+        return readDates.TryGetValue(key, out var date) ? date : DateTime.Today;
+    }
+
+    private void SetReadDate(Book book, DateTime? date)
+    {
+        readDates[GetBookKey(book)] = date ?? DateTime.Today;
+    }
+
+    private static string GetBookKey(Book book) => $"{book.Title.Trim()}|{book.Author.Trim()}|{book.DatePublished:O}";
+}

@@ -1,0 +1,8 @@
+**/bin/
+**/obj/
+.artifacts/
+.vs/
+.vscode/
+.env
+TestResults/
+src/BookNThings.Web/.keys/

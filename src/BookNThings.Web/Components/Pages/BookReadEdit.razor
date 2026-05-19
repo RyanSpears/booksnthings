@@ -1,0 +1,190 @@
+@page "/books-read/{Id}"
+@rendermode InteractiveServer
+@inject IBookRepository Repository
+@inject ILogger<BookReadEdit> Logger
+@inject NavigationManager Navigation
+
+<PageTitle>Edit Book Read | BookNThings</PageTitle>
+
+<MudStack Spacing="3">
+    <MudText Typo="Typo.h3">Edit Book Read</MudText>
+
+    @if (isLoading)
+    {
+        <MudPaper Class="panel loading-panel" Elevation="0">
+            <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+            <MudText>Loading book read</MudText>
+        </MudPaper>
+    }
+    else if (!string.IsNullOrWhiteSpace(errorMessage))
+    {
+        <MudPaper Class="panel" Elevation="0">
+            <MudAlert Severity="Severity.Error" Variant="Variant.Outlined">@errorMessage</MudAlert>
+            <MudButton Href="books-read" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowBack">Back to Books Read</MudButton>
+        </MudPaper>
+    }
+    else if (book is not null)
+    {
+        <MudPaper Class="panel" Elevation="0">
+            <MudStack Spacing="3">
+                <div>
+                    <MudText Typo="Typo.h5">@book.Title</MudText>
+                    <MudText Typo="Typo.subtitle2" Class="muted-text">@book.Author</MudText>
+                    <MudText Typo="Typo.body2">@book.Description</MudText>
+                </div>
+
+                <MudGrid>
+                    <MudItem xs="12" md="4">
+                        <MudText Typo="Typo.caption" Class="muted-text">Published</MudText>
+                        <MudText Typo="Typo.body2"><b>@book.DatePublished.ToString("yyyy-MM-dd")</b></MudText>
+                    </MudItem>
+                    <MudItem xs="12" md="4">
+                        <MudText Typo="Typo.caption" Class="muted-text">Pages</MudText>
+                        <MudText Typo="Typo.body2"><b>@book.Pages</b></MudText>
+                    </MudItem>
+                    <MudItem xs="12" md="4">
+                        <MudText Typo="Typo.caption" Class="muted-text">Genres</MudText>
+                        <MudText Typo="Typo.body2"><b>@string.Join(", ", book.Genres)</b></MudText>
+                    </MudItem>
+                </MudGrid>
+
+                <MudDatePicker Label="Date read"
+                               Date="@dateRead"
+                               DateChanged="date => dateRead = date ?? DateTime.Today"
+                               Variant="Variant.Outlined"
+                               Disabled="@isSaving" />
+
+                <MudStack Row="true" Spacing="2" Class="action-row">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="UpdateReadDateAsync" Disabled="@isSaving" StartIcon="@Icons.Material.Filled.Save">
+                        @(isSaving ? "Saving" : "Save date")
+                    </MudButton>
+                    <MudButton Href="books-read" Variant="Variant.Text" Color="Color.Primary" Disabled="@isSaving" StartIcon="@Icons.Material.Filled.ArrowBack">
+                        Cancel
+                    </MudButton>
+                </MudStack>
+            </MudStack>
+        </MudPaper>
+
+        <MudPaper Class="panel danger-zone" Elevation="0">
+            <MudStack Spacing="2">
+                <MudText Typo="Typo.h6">Delete book read</MudText>
+                <MudText Class="muted-text">Remove this book from Books Read entirely.</MudText>
+
+                @if (isConfirmingDelete)
+                {
+                    <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined">This cannot be undone.</MudAlert>
+                    <MudStack Row="true" Spacing="2" Class="action-row">
+                        <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="DeleteAsync" Disabled="@isDeleting" StartIcon="@Icons.Material.Filled.DeleteForever">
+                            @(isDeleting ? "Deleting" : "Delete permanently")
+                        </MudButton>
+                        <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="() => isConfirmingDelete = false" Disabled="@isDeleting">
+                            Keep it
+                        </MudButton>
+                    </MudStack>
+                }
+                else
+                {
+                    <MudButton Variant="Variant.Outlined" Color="Color.Error" OnClick="() => isConfirmingDelete = true" StartIcon="@Icons.Material.Filled.Delete">
+                        Delete
+                    </MudButton>
+                }
+            </MudStack>
+        </MudPaper>
+    }
+</MudStack>
+
+@code {
+    [Parameter]
+    public string? Id { get; set; }
+
+    private Book? book;
+    private DateTime? dateRead;
+    private bool isLoading = true;
+    private bool isSaving;
+    private bool isDeleting;
+    private bool isConfirmingDelete;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (string.IsNullOrWhiteSpace(Id))
+        {
+            errorMessage = "Book read id is required.";
+            isLoading = false;
+            return;
+        }
+
+        try
+        {
+            book = await Repository.GetByIdAsync(Id, CancellationToken.None);
+            if (book is null)
+            {
+                errorMessage = "Book read record was not found.";
+                return;
+            }
+
+            dateRead = book.DateRead == default ? DateTime.Today : book.DateRead;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Loading book read failed.");
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task UpdateReadDateAsync()
+    {
+        if (string.IsNullOrWhiteSpace(Id))
+        {
+            errorMessage = "Book read id is required.";
+            return;
+        }
+
+        try
+        {
+            isSaving = true;
+            errorMessage = null;
+            await Repository.UpdateReadDateAsync(Id, (dateRead ?? DateTime.Today).Date, CancellationToken.None);
+            Navigation.NavigateTo("books-read");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Updating book read failed.");
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private async Task DeleteAsync()
+    {
+        if (string.IsNullOrWhiteSpace(Id))
+        {
+            errorMessage = "Book read id is required.";
+            return;
+        }
+
+        try
+        {
+            isDeleting = true;
+            errorMessage = null;
+            await Repository.DeleteAsync(Id, CancellationToken.None);
+            Navigation.NavigateTo("books-read");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Deleting book read failed.");
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            isDeleting = false;
+        }
+    }
+}

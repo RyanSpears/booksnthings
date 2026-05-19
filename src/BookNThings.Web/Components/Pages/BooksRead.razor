@@ -1,0 +1,88 @@
+@page "/books-read"
+@rendermode InteractiveServer
+@inject IBookRepository Repository
+@inject ILogger<BooksRead> Logger
+
+<PageTitle>Books Read | BookNThings</PageTitle>
+
+<MudStack Spacing="3">
+    <MudText Typo="Typo.h3">Books Read</MudText>
+
+    @if (isLoading)
+    {
+        <MudPaper Class="panel loading-panel" Elevation="0">
+            <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+            <MudText>Loading books read</MudText>
+        </MudPaper>
+    }
+    else if (!string.IsNullOrWhiteSpace(errorMessage))
+    {
+        <MudPaper Class="panel" Elevation="0">
+            <MudAlert Severity="Severity.Error" Variant="Variant.Outlined">@errorMessage</MudAlert>
+        </MudPaper>
+    }
+    else if (books.Count == 0)
+    {
+        <MudPaper Class="empty-state" Elevation="0">
+            <MudText Typo="Typo.h5">No books read yet</MudText>
+            <MudText Class="muted-text">Search for books and save a few candidates to build your Books Read list.</MudText>
+            <MudButton Href="search" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Search">Search books</MudButton>
+        </MudPaper>
+    }
+    else
+    {
+        <MudPaper Class="panel table-panel" Elevation="0">
+            <MudTable Items="@BooksReadOrdered" Dense="true" Hover="true" Breakpoint="Breakpoint.Sm">
+                <HeaderContent>
+                    <MudTh>Date read</MudTh>
+                    <MudTh>Title</MudTh>
+                    <MudTh>Author</MudTh>
+                    <MudTh>Published</MudTh>
+                    <MudTh>Pages</MudTh>
+                    <MudTh>Genres</MudTh>
+                    <MudTh></MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Date read">@context.DateRead.ToString("yyyy-MM-dd")</MudTd>
+                    <MudTd DataLabel="Title">
+                        <MudText Typo="Typo.subtitle2">@context.Title</MudText>
+                        <MudText Typo="Typo.caption" Class="muted-text">@context.Description</MudText>
+                    </MudTd>
+                    <MudTd DataLabel="Author">@context.Author</MudTd>
+                    <MudTd DataLabel="Published">@context.DatePublished.ToString("yyyy-MM-dd")</MudTd>
+                    <MudTd DataLabel="Pages">@context.Pages</MudTd>
+                    <MudTd DataLabel="Genres">@string.Join(", ", context.Genres)</MudTd>
+                    <MudTd DataLabel="Actions">
+                        <MudButton Href="@($"books-read/{context.Id}")" Variant="Variant.Text" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Filled.Edit">
+                            Edit
+                        </MudButton>
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        </MudPaper>
+    }
+</MudStack>
+
+@code {
+    private bool isLoading = true;
+    private string? errorMessage;
+    private List<Book> books = [];
+    private IEnumerable<Book> BooksReadOrdered => books.OrderByDescending(item => item.DateRead);
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            books = (await Repository.GetAllAsync(CancellationToken.None)).ToList();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Loading books read failed.");
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

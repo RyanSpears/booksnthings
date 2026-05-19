@@ -1,0 +1,13 @@
+﻿<Router AppAssembly="typeof(Program).Assembly" NotFoundPage="typeof(Pages.NotFound)">
+    <Found Context="routeData">
+        <ErrorBoundary>
+            <ChildContent>
+                <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
+            </ChildContent>
+            <ErrorContent>
+                <MudAlert Severity="Severity.Error" Variant="Variant.Filled">Something went wrong while rendering this page. Please refresh and try again.</MudAlert>
+            </ErrorContent>
+        </ErrorBoundary>
+        <FocusOnNavigate RouteData="routeData" Selector="h1" />
+    </Found>
+</Router>
