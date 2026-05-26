@@ -4,22 +4,17 @@ using BookNThings.Domain.Models;
 using BookNThings.Infrastructure.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace BookNThings.Infrastructure.Mongo;
 
-public sealed class MongoBookRepository : IBookRepository
+public sealed class MongoBookRepository(IOptions<MongoDbOptions> options, ILogger<MongoBookRepository> logger) : IBookRepository
 {
-    private readonly MongoDbOptions _options;
-    private readonly ILogger<MongoBookRepository> _logger;
+    private readonly MongoDbOptions _options = options.Value;
+    private readonly ILogger<MongoBookRepository> _logger = logger;
     private IMongoCollection<MongoBookDocument>? _collection;
     private bool _indexesCreated;
-
-    public MongoBookRepository(IOptions<MongoDbOptions> options, ILogger<MongoBookRepository> logger)
-    {
-        _logger = logger;
-        _options = options.Value;
-    }
 
     public async Task SaveAsync(Book item, CancellationToken cancellationToken)
     {
@@ -37,6 +32,11 @@ public sealed class MongoBookRepository : IBookRepository
 
         try
         {
+            if (string.IsNullOrWhiteSpace(item.Id))
+            {
+                item.Id = ObjectId.GenerateNewId().ToString();
+            }
+
             var collection = await GetCollectionAsync(cancellationToken);
             await collection.InsertOneAsync(ToDocument(item), cancellationToken: cancellationToken);
         }
@@ -140,6 +140,56 @@ public sealed class MongoBookRepository : IBookRepository
         {
             _logger.LogError(ex, "MongoDB delete failed.");
             throw new InvalidOperationException("Could not delete the book read record. Please try again.", ex);
+        }
+    }
+
+    public async Task ReplaceAllAsync(IReadOnlyList<Book> books, CancellationToken cancellationToken)
+    {
+        var errors = books
+            .SelectMany(BookValidator.ValidateForSave)
+            .ToList();
+
+        if (errors.Count > 0)
+        {
+            _logger.LogWarning("MongoDB replace validation failed: {ValidationErrors}", string.Join(" ", errors));
+            throw new ArgumentException(string.Join(" ", errors), nameof(books));
+        }
+
+        try
+        {
+            var collection = await GetCollectionAsync(cancellationToken);
+            var normalized = books
+                .Where(book => !string.IsNullOrWhiteSpace(book.Id))
+                .GroupBy(book => book.Id)
+                .Select(group => group.First())
+                .ToList();
+
+            var ids = normalized.Select(book => book.Id).ToList();
+            if (ids.Count == 0)
+            {
+                await collection.DeleteManyAsync(FilterDefinition<MongoBookDocument>.Empty, cancellationToken);
+                return;
+            }
+
+            var writes = normalized
+                .Select(book => new ReplaceOneModel<MongoBookDocument>(
+                    Builders<MongoBookDocument>.Filter.Eq(document => document.Id, book.Id),
+                    ToDocument(book))
+                {
+                    IsUpsert = true
+                })
+                .Cast<WriteModel<MongoBookDocument>>()
+                .ToList();
+
+            await collection.BulkWriteAsync(writes, cancellationToken: cancellationToken);
+            await collection.DeleteManyAsync(
+                Builders<MongoBookDocument>.Filter.Nin(document => document.Id, ids),
+                cancellationToken);
+        }
+        catch (MongoException ex)
+        {
+            _logger.LogError(ex, "MongoDB replace failed.");
+            throw new InvalidOperationException("Could not align saved books with MongoDB. Please try again.", ex);
         }
     }
 

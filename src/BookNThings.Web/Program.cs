@@ -3,8 +3,10 @@ using BookNThings.Application.Contracts;
 using BookNThings.Application.Services;
 using BookNThings.Infrastructure.Configuration;
 using BookNThings.Infrastructure.Health;
+using BookNThings.Infrastructure.Local;
 using BookNThings.Infrastructure.Mongo;
 using BookNThings.Infrastructure.OpenAi;
+using BookNThings.Web.Services;
 using Microsoft.AspNetCore.DataProtection;
 using MudBlazor.Services;
 
@@ -26,11 +28,21 @@ builder.Services.AddDataProtection()
 builder.Services.AddMudServices();
 builder.Services.Configure<OpenAiOptions>(builder.Configuration.GetSection(OpenAiOptions.SectionName));
 builder.Services.Configure<MongoDbOptions>(builder.Configuration.GetSection(MongoDbOptions.SectionName));
+builder.Services.Configure<LocalBooksOptions>(options =>
+{
+    options.DataDirectory = Path.Combine(builder.Environment.ContentRootPath, "Data");
+    options.FileName = "books.json";
+});
 
 builder.Services.AddScoped<BookSearchOrchestrator>();
 builder.Services.AddScoped<ConnectionStatusService>();
 builder.Services.AddHttpClient<IBookSearchService, OpenAiBookSearchService>();
-builder.Services.AddScoped<IBookRepository, MongoBookRepository>();
+builder.Services.AddScoped<MongoBookRepository>();
+builder.Services.AddScoped<JsonBookStore>();
+builder.Services.AddScoped<SynchronizingBookRepository>();
+builder.Services.AddScoped<IBookRepository>(provider => provider.GetRequiredService<SynchronizingBookRepository>());
+builder.Services.AddScoped<IBookDataSynchronizer>(provider => provider.GetRequiredService<SynchronizingBookRepository>());
+builder.Services.AddHostedService<BookDataAlignmentHostedService>();
 
 var app = builder.Build();
 
