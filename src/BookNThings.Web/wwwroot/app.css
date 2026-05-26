@@ -158,6 +158,34 @@ h1:focus {
     flex-wrap: wrap;
 }
 
+.tag-stat-list {
+    display: grid;
+    gap: 0.65rem;
+    margin-top: 1rem;
+}
+
+.tag-stat-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    min-height: 3rem;
+    background: var(--app-teal-soft);
+    border: 1px solid rgba(5, 175, 175, 0.24);
+    border-radius: 12px;
+    padding: 0.75rem 0.9rem;
+}
+
+.tag-stat-row span {
+    color: var(--app-ink);
+    font-weight: 700;
+}
+
+.tag-stat-row b {
+    color: var(--app-pink);
+    font-size: 1.05rem;
+}
+
 .button-spinner {
     margin-right: 0.5rem;
 }
@@ -206,7 +234,8 @@ h1:focus {
 }
 
 .table-panel {
-    overflow: hidden;
+    overflow-x: auto;
+    overflow-y: hidden;
     padding: 0;
 }
 
@@ -226,6 +255,16 @@ h1:focus {
     border-bottom-color: var(--app-border);
     color: var(--app-ink);
     vertical-align: top;
+}
+
+.table-panel .date-read-column {
+    width: 8.5rem;
+    min-width: 8.5rem;
+    white-space: nowrap;
+}
+
+.table-panel .mud-table-root {
+    min-width: 68rem;
 }
 
 .danger-zone {

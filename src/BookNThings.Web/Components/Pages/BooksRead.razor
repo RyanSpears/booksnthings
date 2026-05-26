@@ -32,9 +32,18 @@
     else
     {
         <MudPaper Class="panel table-panel" Elevation="0">
-            <MudTable Items="@BooksReadOrdered" Dense="true" Hover="true" Breakpoint="Breakpoint.Sm">
+            <MudTable Items="@BooksReadOrdered" Dense="true" Hover="true" Breakpoint="Breakpoint.Sm" RowsPerPage="25">
+                <ColGroup>
+                    <col class="date-read-column" />
+                    <col />
+                    <col />
+                    <col />
+                    <col />
+                    <col />
+                    <col />
+                </ColGroup>
                 <HeaderContent>
-                    <MudTh>Date read</MudTh>
+                    <MudTh Class="date-read-column">Date read</MudTh>
                     <MudTh>Title</MudTh>
                     <MudTh>Author</MudTh>
                     <MudTh>Published</MudTh>
@@ -43,7 +52,7 @@
                     <MudTh></MudTh>
                 </HeaderContent>
                 <RowTemplate>
-                    <MudTd DataLabel="Date read">@context.DateRead.ToString("yyyy-MM-dd")</MudTd>
+                    <MudTd DataLabel="Date read" Class="date-read-column">@context.DateRead.ToString("yyyy-MM-dd")</MudTd>
                     <MudTd DataLabel="Title">
                         <MudText Typo="Typo.subtitle2">@context.Title</MudText>
                         <MudText Typo="Typo.caption" Class="muted-text">@context.Description</MudText>
@@ -58,6 +67,9 @@
                         </MudButton>
                     </MudTd>
                 </RowTemplate>
+                <PagerContent>
+                    <MudTablePager PageSizeOptions="new[] { 25, 50, 100 }" />
+                </PagerContent>
             </MudTable>
         </MudPaper>
     }

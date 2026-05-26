@@ -1,4 +1,7 @@
 @page "/"
+@rendermode InteractiveServer
+@inject IBookRepository Repository
+@inject ILogger<Home> Logger
 
 <PageTitle>Dashboard | BookNThings</PageTitle>
 
@@ -14,26 +17,70 @@
             </MudStack>
         </div>
 
-        <div class="hero-stats">
-            <div class="stat-card">
-                <div class="stat-label">Saved books</div>
-                <div class="stat-value">0</div>
+        @if (isLoading)
+        {
+            <MudPaper Class="panel loading-panel" Elevation="0">
+                <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+                <MudText>Loading reading stats</MudText>
+            </MudPaper>
+        }
+        else if (!string.IsNullOrWhiteSpace(errorMessage))
+        {
+            <MudPaper Class="panel" Elevation="0">
+                <MudAlert Severity="Severity.Error" Variant="Variant.Outlined">@errorMessage</MudAlert>
+            </MudPaper>
+        }
+        else
+        {
+            <div class="hero-stats">
+                <div class="stat-card">
+                    <div class="stat-label">Books read in @currentYear</div>
+                    <div class="stat-value">@booksReadThisYear.Count.ToString("N0")</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Pages read in @currentYear</div>
+                    <div class="stat-value">@pagesReadThisYear.ToString("N0")</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Pages per day</div>
+                    <div class="stat-value">@pagesPerDay.ToString("N1")</div>
+                </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-label">Searches</div>
-                <div class="stat-value">0</div>
-            </div>
-        </div>
+        }
     </MudPaper>
 
     <MudGrid>
-        <MudItem xs="12" md="6">
+        <MudItem xs="12" md="7">
             <MudPaper Class="panel" Elevation="0">
-                <MudText Typo="Typo.h6">Recent Activity</MudText>
-                <MudText Class="muted-text">Saved books appear on the BooksRead page, sorted by read date.</MudText>
+                <MudText Typo="Typo.h6">Books by tag in @currentYear</MudText>
+
+                @if (isLoading)
+                {
+                    <MudText Class="muted-text">Loading tag totals.</MudText>
+                }
+                else if (booksReadThisYear.Count == 0)
+                {
+                    <MudText Class="muted-text">Books you read this year will be grouped here by tag.</MudText>
+                }
+                else if (booksByTag.Count == 0)
+                {
+                    <MudText Class="muted-text">No tags have been added to this year's books yet.</MudText>
+                }
+                else
+                {
+                    <div class="tag-stat-list">
+                        @foreach (var item in booksByTag)
+                        {
+                            <div class="tag-stat-row">
+                                <span>@item.Tag</span>
+                                <b>@item.Count.ToString("N0")</b>
+                            </div>
+                        }
+                    </div>
+                }
             </MudPaper>
         </MudItem>
-        <MudItem xs="12" md="6">
+        <MudItem xs="12" md="5">
             <MudPaper Class="panel" Elevation="0">
                 <MudText Typo="Typo.h6">Configuration</MudText>
                 <MudText Class="muted-text">Check OpenAI and MongoDB status before searching or saving.</MudText>
@@ -42,3 +89,52 @@
         </MudItem>
     </MudGrid>
 </MudStack>
+
+@code {
+    private readonly int currentYear = DateTime.Today.Year;
+    private bool isLoading = true;
+    private string? errorMessage;
+    private List<Book> booksReadThisYear = [];
+    private List<TagCount> booksByTag = [];
+    private int pagesReadThisYear;
+    private decimal pagesPerDay;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var yearStart = new DateTime(currentYear, 1, 1);
+            var nextYearStart = yearStart.AddYears(1);
+            booksReadThisYear = (await Repository.GetAllAsync(CancellationToken.None))
+                .Where(book => book.DateRead >= yearStart && book.DateRead < nextYearStart)
+                .ToList();
+
+            pagesReadThisYear = booksReadThisYear.Sum(book => Math.Max(0, book.Pages));
+            pagesPerDay = CalculatePagesPerDay(pagesReadThisYear);
+            booksByTag = booksReadThisYear
+                .SelectMany(book => book.Genres.Where(tag => !string.IsNullOrWhiteSpace(tag)))
+                .GroupBy(tag => tag.Trim(), StringComparer.OrdinalIgnoreCase)
+                .Select(group => new TagCount(group.First(), group.Count()))
+                .OrderByDescending(item => item.Count)
+                .ThenBy(item => item.Tag)
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Loading dashboard reading stats failed.");
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private static decimal CalculatePagesPerDay(int totalPages)
+    {
+        var daysElapsed = DateTime.Today.DayOfYear;
+        return daysElapsed == 0 ? 0 : Math.Round(totalPages / (decimal)daysElapsed, 1);
+    }
+
+    private sealed record TagCount(string Tag, int Count);
+}

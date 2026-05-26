@@ -4,5 +4,6 @@
 .vs/
 .vscode/
 .env
+*.csproj.user
 TestResults/
 src/BookNThings.Web/.keys/
