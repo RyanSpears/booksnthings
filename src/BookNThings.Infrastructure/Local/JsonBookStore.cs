@@ -155,7 +155,8 @@ public sealed class JsonBookStore
             await JsonSerializer.SerializeAsync(stream, normalized, SerializerOptions, cancellationToken);
         }
 
-        File.Move(tempFile, filePath, true);
+        File.Copy(tempFile, filePath, true);
+        File.Delete(tempFile);
         _logger.LogInformation("Updated local books mirror at {BooksFilePath}.", filePath);
     }
 

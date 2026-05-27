@@ -31,8 +31,23 @@
     }
     else
     {
+        <MudPaper Class="panel search-panel" Elevation="0">
+            <MudTextField @bind-Value="searchText"
+                          Placeholder="Search books read"
+                          Variant="Variant.Outlined"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search"
+                          Immediate="false" />
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ApplySearch" StartIcon="@Icons.Material.Filled.Search">
+                Search
+            </MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="ClearSearch" StartIcon="@Icons.Material.Filled.Clear">
+                Clear
+            </MudButton>
+        </MudPaper>
+
         <MudPaper Class="panel table-panel" Elevation="0">
-            <MudTable Items="@BooksReadOrdered" Dense="true" Hover="true" Breakpoint="Breakpoint.Sm" RowsPerPage="25">
+            <MudTable Items="@BooksReadFiltered" Dense="true" Hover="true" Breakpoint="Breakpoint.Sm" RowsPerPage="25">
                 <ColGroup>
                     <col class="date-read-column" />
                     <col />
@@ -67,6 +82,9 @@
                         </MudButton>
                     </MudTd>
                 </RowTemplate>
+                <NoRecordsContent>
+                    <MudText Class="muted-text">No books match your search.</MudText>
+                </NoRecordsContent>
                 <PagerContent>
                     <MudTablePager PageSizeOptions="new[] { 25, 50, 100 }" />
                 </PagerContent>
@@ -78,8 +96,12 @@
 @code {
     private bool isLoading = true;
     private string? errorMessage;
+    private string searchText = "";
+    private string appliedSearchText = "";
     private List<Book> books = [];
-    private IEnumerable<Book> BooksReadOrdered => books.OrderByDescending(item => item.DateRead);
+    private IEnumerable<Book> BooksReadFiltered => books
+        .Where(MatchesSearch)
+        .OrderByDescending(item => item.DateRead);
 
     protected override async Task OnInitializedAsync()
     {
@@ -97,4 +119,32 @@
             isLoading = false;
         }
     }
+
+    private void ApplySearch()
+    {
+        appliedSearchText = searchText.Trim();
+    }
+
+    private void ClearSearch()
+    {
+        searchText = "";
+        appliedSearchText = "";
+    }
+
+    private bool MatchesSearch(Book book)
+    {
+        if (string.IsNullOrWhiteSpace(appliedSearchText))
+        {
+            return true;
+        }
+
+        return ContainsSearchText(book.Title)
+            || ContainsSearchText(book.Description)
+            || ContainsSearchText(book.Author)
+            || book.Genres.Any(ContainsSearchText);
+    }
+
+    private bool ContainsSearchText(string? value) =>
+        !string.IsNullOrWhiteSpace(value)
+        && value.Contains(appliedSearchText, StringComparison.OrdinalIgnoreCase);
 }

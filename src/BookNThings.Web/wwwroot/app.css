@@ -186,6 +186,75 @@ h1:focus {
     font-size: 1.05rem;
 }
 
+.yearly-summary-list {
+    width: 100%;
+}
+
+.yearly-summary-row {
+    width: 100%;
+    display: grid;
+    gap: 1.15rem;
+}
+
+.yearly-summary-main {
+    display: grid;
+    grid-template-columns: minmax(6rem, 0.35fr) minmax(30rem, 1fr);
+    gap: 1rem;
+    align-items: stretch;
+}
+
+.yearly-summary-header {
+    min-height: 5.9rem;
+    display: flex;
+    align-items: center;
+}
+
+.yearly-summary-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.tag-badge-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+}
+
+.tag-badge {
+    min-height: 2.25rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    max-width: 100%;
+    background: #ffffff;
+    border: 1px solid rgba(5, 175, 175, 0.28);
+    border-radius: 999px;
+    color: var(--app-ink);
+    font-size: 0.86rem;
+    font-weight: 800;
+    line-height: 1.2;
+    padding: 0.35rem 0.45rem 0.35rem 0.85rem;
+}
+
+.tag-badge span {
+    overflow-wrap: anywhere;
+}
+
+.tag-badge b {
+    min-width: 1.6rem;
+    height: 1.6rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    background: var(--app-pink);
+    border-radius: 999px;
+    color: #ffffff;
+    font-size: 0.78rem;
+    font-weight: 900;
+}
+
 .button-spinner {
     margin-right: 0.5rem;
 }
@@ -231,6 +300,13 @@ h1:focus {
 .save-date-panel {
     width: 100%;
     padding-top: 0.25rem;
+}
+
+.search-panel {
+    display: grid;
+    grid-template-columns: minmax(16rem, 1fr) auto auto;
+    gap: 0.75rem;
+    align-items: start;
 }
 
 .table-panel {
@@ -331,5 +407,17 @@ h1:focus {
 
     .hero-title {
         margin-top: 1.2rem;
+    }
+
+    .yearly-summary-main {
+        grid-template-columns: 1fr;
+    }
+
+    .yearly-summary-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .search-panel {
+        grid-template-columns: 1fr;
     }
 }

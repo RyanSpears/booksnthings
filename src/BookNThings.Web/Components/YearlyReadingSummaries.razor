@@ -1,0 +1,98 @@
+<MudStack Spacing="2" Class="yearly-summary-list">
+    @foreach (var summary in Summaries)
+    {
+        <MudPaper Class="panel yearly-summary-row" Elevation="0">
+            <div class="yearly-summary-main">
+                <div class="yearly-summary-header">
+                    <MudText Typo="Typo.h6">@summary.Year</MudText>
+                </div>
+
+                <div class="yearly-summary-stats">
+                    <div class="stat-card">
+                        <div class="stat-label">Books read</div>
+                        <div class="stat-value">@summary.BookCount.ToString("N0")</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Pages read</div>
+                        <div class="stat-value">@summary.PageCount.ToString("N0")</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Pages per day</div>
+                        <div class="stat-value">@summary.PagesPerDay.ToString("N1")</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="yearly-summary-tags">
+                @if (summary.Tags.Count == 0)
+                {
+                    <MudText Class="muted-text">No tags have been added to these books yet.</MudText>
+                }
+                else
+                {
+                    <div class="tag-badge-list" aria-label="Books by tag">
+                        @foreach (var item in summary.Tags)
+                        {
+                            <span class="tag-badge">
+                                <span>@item.Tag</span>
+                                <b>@item.Count.ToString("N0")</b>
+                            </span>
+                        }
+                    </div>
+                }
+            </div>
+        </MudPaper>
+    }
+</MudStack>
+
+@code {
+    [Parameter]
+    public IReadOnlyList<Book> Books { get; set; } = [];
+
+    private IReadOnlyList<YearlySummary> Summaries =>
+        Books
+            .Where(book => book.DateRead != default)
+            .GroupBy(book => book.DateRead.Year)
+            .OrderByDescending(group => group.Key)
+            .Select(group =>
+            {
+                var books = group.ToList();
+                var pageCount = books.Sum(book => Math.Max(0, book.Pages));
+
+                return new YearlySummary(
+                    group.Key,
+                    books.Count,
+                    pageCount,
+                    CalculatePagesPerDay(group.Key, pageCount),
+                    BuildTags(books));
+            })
+            .ToList();
+
+    private static IReadOnlyList<TagCount> BuildTags(IEnumerable<Book> books) =>
+        books
+            .SelectMany(book => book.Genres.Where(tag => !string.IsNullOrWhiteSpace(tag)))
+            .GroupBy(tag => tag.Trim(), StringComparer.OrdinalIgnoreCase)
+            .Select(group => new TagCount(group.First(), group.Count()))
+            .OrderByDescending(item => item.Count)
+            .ThenBy(item => item.Tag)
+            .ToList();
+
+    private static decimal CalculatePagesPerDay(int year, int totalPages)
+    {
+        var today = DateTime.Today;
+        var daysInPeriod = year == today.Year
+            ? today.DayOfYear
+            : DateTime.IsLeapYear(year) ? 366 : 365;
+
+        return daysInPeriod == 0 ? 0 : Math.Round(totalPages / (decimal)daysInPeriod, 1);
+    }
+
+    private sealed record YearlySummary(
+        int Year,
+        int BookCount,
+        int PageCount,
+        decimal PagesPerDay,
+        IReadOnlyList<TagCount> Tags);
+
+    private sealed record TagCount(string Tag, int Count);
+}
