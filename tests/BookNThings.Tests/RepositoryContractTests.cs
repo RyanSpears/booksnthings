@@ -35,6 +35,30 @@ public class RepositoryContractTests
     }
 
     [Fact]
+    public async Task Repository_Should_Save_Currently_Reading_Book_Without_Read_Date()
+    {
+        var saved = new List<Book>();
+        var repository = new Mock<IBookRepository>();
+        repository.Setup(r => r.SaveAsync(It.IsAny<Book>(), It.IsAny<CancellationToken>()))
+            .Callback<Book, CancellationToken>((book, _) => saved.Add(book))
+            .Returns(Task.CompletedTask);
+        repository.Setup(r => r.GetAllAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() => saved);
+
+        var book = new Book
+        {
+            Title = "Parable of the Sower",
+            Author = "Octavia E. Butler",
+            DatePublished = new DateTime(1993, 10, 1)
+        };
+
+        await repository.Object.SaveAsync(book, CancellationToken.None);
+        var results = await repository.Object.GetAllAsync(CancellationToken.None);
+
+        results.Should().ContainSingle().Which.DateRead.Should().BeNull();
+    }
+
+    [Fact]
     public async Task Repository_Should_Update_And_Delete_Book_Read_Through_Contract()
     {
         var saved = new List<Book>

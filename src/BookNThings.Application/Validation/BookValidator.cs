@@ -37,15 +37,18 @@ public static class BookValidator
         return errors;
     }
 
-    public static IReadOnlyList<string> ValidateForSave(Book? book)
+    public static IReadOnlyList<string> ValidateForRead(Book? book)
     {
         var errors = Validate(book).ToList();
 
-        if (book is not null && book.DateRead == default)
+        if (book is not null && !book.DateRead.HasValue)
         {
             errors.Add("Read date is required.");
         }
 
         return errors;
     }
+
+    public static IReadOnlyList<string> ValidateForCurrentlyReading(Book? book) =>
+        Validate(book);
 }

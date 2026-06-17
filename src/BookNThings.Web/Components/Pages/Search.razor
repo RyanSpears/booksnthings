@@ -91,9 +91,14 @@
                             }
                             else
                             {
-                                <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="() => StartReadDateSelection(book)" StartIcon="@Icons.Material.Filled.BookmarkAdd">
-                                    Save
-                                </MudButton>
+                                <MudStack Row="true" Spacing="1" Class="action-row">
+                                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="() => SaveCurrentlyReadingAsync(book)" Disabled="@savingKeys.Contains(GetBookKey(book))" StartIcon="@Icons.Material.Filled.AutoStories">
+                                        Currently reading
+                                    </MudButton>
+                                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="() => StartReadDateSelection(book)" Disabled="@savingKeys.Contains(GetBookKey(book))" StartIcon="@Icons.Material.Filled.BookmarkAdd">
+                                        Save read
+                                    </MudButton>
+                                </MudStack>
                             }
                         </MudCardActions>
                     </MudCard>
@@ -175,6 +180,43 @@
         catch (Exception ex)
         {
             Logger.LogError(ex, "Saving book failed.");
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            savingKeys.Remove(key);
+        }
+    }
+
+    private async Task SaveCurrentlyReadingAsync(Book book)
+    {
+        errorMessage = null;
+        successMessage = null;
+        var key = GetBookKey(book);
+        savingKeys.Add(key);
+
+        try
+        {
+            var currentlyReading = new Book
+            {
+                Id = book.Id,
+                Title = book.Title,
+                Description = book.Description,
+                Pages = book.Pages,
+                DatePublished = book.DatePublished,
+                DateRead = null,
+                Genres = [.. book.Genres],
+                Author = book.Author
+            };
+
+            await Repository.SaveAsync(currentlyReading, CancellationToken.None);
+            successMessage = $"Saved {book.Title} to Currently Reading.";
+            selectingReadDateKeys.Remove(key);
+            readDates.Remove(key);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Saving currently reading book failed.");
             errorMessage = ex.Message;
         }
         finally

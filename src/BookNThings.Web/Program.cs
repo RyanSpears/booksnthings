@@ -21,6 +21,7 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 var keyDirectory = new DirectoryInfo(Path.Combine(builder.Environment.ContentRootPath, ".keys"));
+
 builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(keyDirectory)
     .SetApplicationName("BookNThings");
@@ -37,7 +38,7 @@ builder.Services.Configure<LocalBooksOptions>(options =>
 builder.Services.AddScoped<BookSearchOrchestrator>();
 builder.Services.AddScoped<ConnectionStatusService>();
 builder.Services.AddHttpClient<IBookSearchService, OpenAiBookSearchService>();
-builder.Services.AddScoped<MongoBookRepository>();
+builder.Services.AddScoped<IMongoBookRepository, MongoBookRepository>();
 builder.Services.AddScoped<JsonBookStore>();
 builder.Services.AddScoped<SynchronizingBookRepository>();
 builder.Services.AddScoped<IBookRepository>(provider => provider.GetRequiredService<SynchronizingBookRepository>());
@@ -60,6 +61,6 @@ app.UseAntiforgery();
 
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
-    .AddInteractiveServerRenderMode();
+.AddInteractiveServerRenderMode();
 
 app.Run();

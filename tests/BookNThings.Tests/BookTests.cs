@@ -21,4 +21,17 @@ public class BookTests
         book.Pages.Should().Be(412);
         book.DateRead.Should().Be(new DateTime(2026, 5, 19));
     }
+
+    [Fact]
+    public void Should_Create_Currently_Reading_Book()
+    {
+        var book = new Book
+        {
+            Title = "Dune",
+            Author = "Frank Herbert",
+            Pages = 412
+        };
+
+        book.DateRead.Should().BeNull();
+    }
 }

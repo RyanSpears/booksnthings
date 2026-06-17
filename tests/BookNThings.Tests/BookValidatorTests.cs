@@ -32,9 +32,9 @@ public class BookValidatorTests
     }
 
     [Fact]
-    public void ValidateForSave_Should_Require_Read_Date()
+    public void ValidateForRead_Should_Require_Read_Date()
     {
-        var errors = BookValidator.ValidateForSave(new Book
+        var errors = BookValidator.ValidateForRead(new Book
         {
             Title = "Dune",
             Author = "Frank Herbert",
@@ -46,15 +46,29 @@ public class BookValidatorTests
     }
 
     [Fact]
-    public void ValidateForSave_Should_Accept_Book_With_Read_Date()
+    public void ValidateForRead_Should_Accept_Book_With_Read_Date()
     {
-        var errors = BookValidator.ValidateForSave(new Book
+        var errors = BookValidator.ValidateForRead(new Book
         {
             Title = "Dune",
             Author = "Frank Herbert",
             Pages = 412,
             DatePublished = new DateTime(1965, 8, 1),
             DateRead = new DateTime(2026, 5, 19)
+        });
+
+        errors.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void ValidateForCurrentlyReading_Should_Not_Require_Read_Date()
+    {
+        var errors = BookValidator.ValidateForCurrentlyReading(new Book
+        {
+            Title = "Dune",
+            Author = "Frank Herbert",
+            Pages = 412,
+            DatePublished = new DateTime(1965, 8, 1)
         });
 
         errors.Should().BeEmpty();

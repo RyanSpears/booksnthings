@@ -1,18 +1,18 @@
-@page "/books-read"
+@page "/currently-reading"
 @rendermode InteractiveServer
 @inject IBookRepository Repository
-@inject ILogger<BooksRead> Logger
+@inject ILogger<CurrentlyReading> Logger
 
-<PageTitle>Books Read | BookNThings</PageTitle>
+<PageTitle>Currently Reading | BookNThings</PageTitle>
 
 <MudStack Spacing="3">
-    <MudText Typo="Typo.h3">Books Read</MudText>
+    <MudText Typo="Typo.h3">Currently Reading</MudText>
 
     @if (isLoading)
     {
         <MudPaper Class="panel loading-panel" Elevation="0">
             <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
-            <MudText>Loading books read</MudText>
+            <MudText>Loading currently reading books</MudText>
         </MudPaper>
     }
     else if (!string.IsNullOrWhiteSpace(errorMessage))
@@ -24,8 +24,8 @@
     else if (books.Count == 0)
     {
         <MudPaper Class="empty-state" Elevation="0">
-            <MudText Typo="Typo.h5">No books read yet</MudText>
-            <MudText Class="muted-text">Search for books and save a few candidates to build your Books Read list.</MudText>
+            <MudText Typo="Typo.h5">No books are currently being read</MudText>
+            <MudText Class="muted-text">Save a book from search without a read date to keep it here until you finish it.</MudText>
             <MudButton Href="search" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Search">Search books</MudButton>
         </MudPaper>
     }
@@ -33,7 +33,7 @@
     {
         <MudPaper Class="panel search-panel" Elevation="0">
             <MudTextField @bind-Value="searchText"
-                          Placeholder="Search books read"
+                          Placeholder="Search currently reading"
                           Variant="Variant.Outlined"
                           Adornment="Adornment.Start"
                           AdornmentIcon="@Icons.Material.Filled.Search"
@@ -47,9 +47,8 @@
         </MudPaper>
 
         <MudPaper Class="panel table-panel" Elevation="0">
-            <MudTable Items="@BooksReadFiltered" Dense="true" Hover="true" Breakpoint="Breakpoint.Sm" RowsPerPage="25">
+            <MudTable Items="@CurrentlyReadingFiltered" Dense="true" Hover="true" Breakpoint="Breakpoint.Sm" RowsPerPage="25">
                 <ColGroup>
-                    <col class="date-read-column" />
                     <col />
                     <col />
                     <col />
@@ -58,7 +57,6 @@
                     <col />
                 </ColGroup>
                 <HeaderContent>
-                    <MudTh Class="date-read-column">Date read</MudTh>
                     <MudTh>Title</MudTh>
                     <MudTh>Author</MudTh>
                     <MudTh>Published</MudTh>
@@ -67,7 +65,6 @@
                     <MudTh></MudTh>
                 </HeaderContent>
                 <RowTemplate>
-                    <MudTd DataLabel="Date read" Class="date-read-column">@context.DateRead!.Value.ToString("yyyy-MM-dd")</MudTd>
                     <MudTd DataLabel="Title">
                         <MudText Typo="Typo.subtitle2">@context.Title</MudText>
                         <MudText Typo="Typo.caption" Class="muted-text">@context.Description</MudText>
@@ -77,8 +74,8 @@
                     <MudTd DataLabel="Pages">@context.Pages</MudTd>
                     <MudTd DataLabel="Genres">@string.Join(", ", context.Genres)</MudTd>
                     <MudTd DataLabel="Actions">
-                        <MudButton Href="@($"books-read/{context.Id}")" Variant="Variant.Text" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Filled.Edit">
-                            Edit
+                        <MudButton Href="@($"books-read/{context.Id}")" Variant="Variant.Text" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Filled.EventAvailable">
+                            Mark as read
                         </MudButton>
                     </MudTd>
                 </RowTemplate>
@@ -99,22 +96,21 @@
     private string searchText = "";
     private string appliedSearchText = "";
     private List<Book> books = [];
-    private IEnumerable<Book> BooksReadFiltered => books
+    private IEnumerable<Book> CurrentlyReadingFiltered => books
         .Where(MatchesSearch)
-        .OrderByDescending(item => item.DateRead)
-        .ThenBy(item => item.Title);
+        .OrderBy(item => item.Title);
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
             books = (await Repository.GetAllAsync(CancellationToken.None))
-                .Where(book => book.DateRead.HasValue)
+                .Where(book => !book.DateRead.HasValue)
                 .ToList();
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Loading books read failed.");
+            Logger.LogError(ex, "Loading currently reading books failed.");
             errorMessage = ex.Message;
         }
         finally

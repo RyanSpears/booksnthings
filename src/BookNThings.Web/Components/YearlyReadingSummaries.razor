@@ -51,8 +51,8 @@
 
     private IReadOnlyList<YearlySummary> Summaries =>
         Books
-            .Where(book => book.DateRead != default)
-            .GroupBy(book => book.DateRead.Year)
+            .Where(book => book.DateRead.HasValue)
+            .GroupBy(book => book.DateRead!.Value.Year)
             .OrderByDescending(group => group.Key)
             .Select(group =>
             {

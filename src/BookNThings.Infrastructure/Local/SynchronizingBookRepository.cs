@@ -3,17 +3,18 @@ using BookNThings.Application.Validation;
 using BookNThings.Domain.Models;
 using BookNThings.Infrastructure.Mongo;
 using Microsoft.Extensions.Logging;
+using MongoDB.Driver;
 
 namespace BookNThings.Infrastructure.Local;
 
 public sealed class SynchronizingBookRepository : IBookRepository, IBookDataSynchronizer
 {
-    private readonly MongoBookRepository _mongoRepository;
+    private readonly IMongoBookRepository _mongoRepository;
     private readonly JsonBookStore _jsonStore;
     private readonly ILogger<SynchronizingBookRepository> _logger;
 
     public SynchronizingBookRepository(
-        MongoBookRepository mongoRepository,
+        IMongoBookRepository mongoRepository,
         JsonBookStore jsonStore,
         ILogger<SynchronizingBookRepository> logger)
     {
@@ -24,12 +25,9 @@ public sealed class SynchronizingBookRepository : IBookRepository, IBookDataSync
 
     public async Task SaveAsync(Book item, CancellationToken cancellationToken)
     {
-        if (item.DateRead == default)
-        {
-            item.DateRead = DateTime.UtcNow;
-        }
-
-        var errors = BookValidator.ValidateForSave(item);
+        var errors = item.DateRead.HasValue
+            ? BookValidator.ValidateForRead(item)
+            : BookValidator.ValidateForCurrentlyReading(item);
         if (errors.Count > 0)
         {
             throw new ArgumentException(string.Join(" ", errors), nameof(item));
@@ -40,7 +38,7 @@ public sealed class SynchronizingBookRepository : IBookRepository, IBookDataSync
             await _mongoRepository.SaveAsync(item, cancellationToken);
             await MirrorMongoAsync(cancellationToken);
         }
-        catch (InvalidOperationException ex)
+        catch (Exception ex) when (ShouldFallbackToLocal(ex))
         {
             _logger.LogWarning(ex, "MongoDB save failed. Saving book to the local JSON mirror.");
             await _jsonStore.UpsertAsync(item, cancellationToken);
@@ -55,7 +53,7 @@ public sealed class SynchronizingBookRepository : IBookRepository, IBookDataSync
             await _jsonStore.ReplaceAllAsync(books, cancellationToken);
             return books;
         }
-        catch (InvalidOperationException ex)
+        catch (Exception ex) when (ShouldFallbackToLocal(ex))
         {
             _logger.LogWarning(ex, "MongoDB read failed. Loading books from the local JSON mirror.");
             return await _jsonStore.GetAllAsync(cancellationToken);
@@ -78,7 +76,7 @@ public sealed class SynchronizingBookRepository : IBookRepository, IBookDataSync
                 return book;
             }
         }
-        catch (InvalidOperationException ex)
+        catch (Exception ex) when (ShouldFallbackToLocal(ex))
         {
             _logger.LogWarning(ex, "MongoDB read by id failed. Loading book from the local JSON mirror.");
         }
@@ -103,7 +101,7 @@ public sealed class SynchronizingBookRepository : IBookRepository, IBookDataSync
             await _mongoRepository.UpdateReadDateAsync(id, dateRead, cancellationToken);
             await MirrorMongoAsync(cancellationToken);
         }
-        catch (InvalidOperationException ex)
+        catch (Exception ex) when (ShouldFallbackToLocal(ex))
         {
             _logger.LogWarning(ex, "MongoDB update failed. Updating the local JSON mirror.");
             await _jsonStore.UpdateReadDateAsync(id, dateRead, cancellationToken);
@@ -122,7 +120,7 @@ public sealed class SynchronizingBookRepository : IBookRepository, IBookDataSync
             await _mongoRepository.DeleteAsync(id, cancellationToken);
             await MirrorMongoAsync(cancellationToken);
         }
-        catch (InvalidOperationException ex)
+        catch (Exception ex) when (ShouldFallbackToLocal(ex))
         {
             _logger.LogWarning(ex, "MongoDB delete failed. Deleting from the local JSON mirror.");
             await _jsonStore.DeleteAsync(id, cancellationToken);
@@ -143,7 +141,7 @@ public sealed class SynchronizingBookRepository : IBookRepository, IBookDataSync
 
             await MirrorMongoAsync(cancellationToken);
         }
-        catch (InvalidOperationException ex)
+        catch (Exception ex) when (ShouldFallbackToLocal(ex))
         {
             _logger.LogWarning(ex, "MongoDB startup alignment failed. The local JSON mirror will be used until MongoDB is available.");
         }
@@ -154,4 +152,7 @@ public sealed class SynchronizingBookRepository : IBookRepository, IBookDataSync
         var books = await _mongoRepository.GetAllAsync(cancellationToken);
         await _jsonStore.ReplaceAllAsync(books, cancellationToken);
     }
+
+    private static bool ShouldFallbackToLocal(Exception exception) =>
+        exception is InvalidOperationException or TimeoutException or MongoException;
 }

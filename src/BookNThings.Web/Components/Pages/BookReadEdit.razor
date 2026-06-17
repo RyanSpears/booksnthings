@@ -123,7 +123,7 @@
                 return;
             }
 
-            dateRead = book.DateRead == default ? DateTime.Today : book.DateRead;
+            dateRead = book.DateRead ?? DateTime.Today;
         }
         catch (Exception ex)
         {

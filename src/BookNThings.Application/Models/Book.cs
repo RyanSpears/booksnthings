@@ -12,7 +12,7 @@ public class Book
 
     public DateTime DatePublished { get; set; }
 
-    public DateTime DateRead { get; set; }
+    public DateTime? DateRead { get; set; }
 
     public List<string> Genres { get; set; } = [];
 

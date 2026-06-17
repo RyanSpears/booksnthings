@@ -9,7 +9,7 @@ using MongoDB.Driver;
 
 namespace BookNThings.Infrastructure.Mongo;
 
-public sealed class MongoBookRepository(IOptions<MongoDbOptions> options, ILogger<MongoBookRepository> logger) : IBookRepository
+public sealed class MongoBookRepository(IOptions<MongoDbOptions> options, ILogger<MongoBookRepository> logger) : IMongoBookRepository
 {
     private readonly MongoDbOptions _options = options.Value;
     private readonly ILogger<MongoBookRepository> _logger = logger;
@@ -18,12 +18,9 @@ public sealed class MongoBookRepository(IOptions<MongoDbOptions> options, ILogge
 
     public async Task SaveAsync(Book item, CancellationToken cancellationToken)
     {
-        if (item.DateRead == default)
-        {
-            item.DateRead = DateTime.UtcNow;
-        }
-
-        var errors = BookValidator.ValidateForSave(item);
+        var errors = item.DateRead.HasValue
+            ? BookValidator.ValidateForRead(item)
+            : BookValidator.ValidateForCurrentlyReading(item);
         if (errors.Count > 0)
         {
             _logger.LogWarning("MongoDB save validation failed: {ValidationErrors}", string.Join(" ", errors));
@@ -38,9 +35,18 @@ public sealed class MongoBookRepository(IOptions<MongoDbOptions> options, ILogge
             }
 
             var collection = await GetCollectionAsync(cancellationToken);
-            await collection.InsertOneAsync(ToDocument(item), cancellationToken: cancellationToken);
+            await collection.ReplaceOneAsync(
+                book => book.Id == item.Id,
+                ToDocument(item),
+                new ReplaceOptions { IsUpsert = true },
+                cancellationToken);
         }
         catch (MongoException ex)
+        {
+            _logger.LogError(ex, "MongoDB save failed.");
+            throw new InvalidOperationException("Could not save the book. Please try again.", ex);
+        }
+        catch (TimeoutException ex)
         {
             _logger.LogError(ex, "MongoDB save failed.");
             throw new InvalidOperationException("Could not save the book. Please try again.", ex);
@@ -55,11 +61,17 @@ public sealed class MongoBookRepository(IOptions<MongoDbOptions> options, ILogge
             var documents = await collection
                 .Find(FilterDefinition<MongoBookDocument>.Empty)
                 .SortByDescending(book => book.DateRead)
+                .ThenBy(book => book.Title)
                 .ToListAsync(cancellationToken);
 
             return documents.Select(ToModel).ToList();
         }
         catch (MongoException ex)
+        {
+            _logger.LogError(ex, "MongoDB read failed.");
+            throw new InvalidOperationException("Could not load saved books. Please try again.", ex);
+        }
+        catch (TimeoutException ex)
         {
             _logger.LogError(ex, "MongoDB read failed.");
             throw new InvalidOperationException("Could not load saved books. Please try again.", ex);
@@ -83,6 +95,11 @@ public sealed class MongoBookRepository(IOptions<MongoDbOptions> options, ILogge
             return document is null ? null : ToModel(document);
         }
         catch (MongoException ex)
+        {
+            _logger.LogError(ex, "MongoDB read by id failed.");
+            throw new InvalidOperationException("Could not load the book read record. Please try again.", ex);
+        }
+        catch (TimeoutException ex)
         {
             _logger.LogError(ex, "MongoDB read by id failed.");
             throw new InvalidOperationException("Could not load the book read record. Please try again.", ex);
@@ -117,6 +134,11 @@ public sealed class MongoBookRepository(IOptions<MongoDbOptions> options, ILogge
             _logger.LogError(ex, "MongoDB update read date failed.");
             throw new InvalidOperationException("Could not update the read date. Please try again.", ex);
         }
+        catch (TimeoutException ex)
+        {
+            _logger.LogError(ex, "MongoDB update read date failed.");
+            throw new InvalidOperationException("Could not update the read date. Please try again.", ex);
+        }
     }
 
     public async Task DeleteAsync(string id, CancellationToken cancellationToken)
@@ -141,12 +163,19 @@ public sealed class MongoBookRepository(IOptions<MongoDbOptions> options, ILogge
             _logger.LogError(ex, "MongoDB delete failed.");
             throw new InvalidOperationException("Could not delete the book read record. Please try again.", ex);
         }
+        catch (TimeoutException ex)
+        {
+            _logger.LogError(ex, "MongoDB delete failed.");
+            throw new InvalidOperationException("Could not delete the book read record. Please try again.", ex);
+        }
     }
 
     public async Task ReplaceAllAsync(IReadOnlyList<Book> books, CancellationToken cancellationToken)
     {
         var errors = books
-            .SelectMany(BookValidator.ValidateForSave)
+            .SelectMany(book => book.DateRead.HasValue
+                ? BookValidator.ValidateForRead(book)
+                : BookValidator.ValidateForCurrentlyReading(book))
             .ToList();
 
         if (errors.Count > 0)
@@ -187,6 +216,11 @@ public sealed class MongoBookRepository(IOptions<MongoDbOptions> options, ILogge
                 cancellationToken);
         }
         catch (MongoException ex)
+        {
+            _logger.LogError(ex, "MongoDB replace failed.");
+            throw new InvalidOperationException("Could not align saved books with MongoDB. Please try again.", ex);
+        }
+        catch (TimeoutException ex)
         {
             _logger.LogError(ex, "MongoDB replace failed.");
             throw new InvalidOperationException("Could not align saved books with MongoDB. Please try again.", ex);
