@@ -4,11 +4,20 @@
 
 <MudNavMenu Color="Color.Inherit" Bordered="false" Class="spurs-nav">
     <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
-    <MudNavLink Href="search" Icon="@Icons.Material.Filled.Search">Search</MudNavLink>
-    <MudNavLink Href="search-games" Icon="@Icons.Material.Filled.Gamepad">Search Games</MudNavLink>
-    <MudNavLink Href="currently-playing" Icon="@Icons.Material.Filled.VideogameAsset">Currently Playing</MudNavLink>
-    <MudNavLink Href="currently-reading" Icon="@Icons.Material.Filled.AutoStories">Currently Reading</MudNavLink>
-    <MudNavLink Href="books-read" Icon="@Icons.Material.Filled.History">Books Read</MudNavLink>
-    <MudNavLink Href="games-played" Icon="@Icons.Material.Filled.SportsEsports">Games Played</MudNavLink>
+
+    <div class="nav-section">
+        <div class="nav-section-title">Books</div>
+        <MudNavLink Href="search" Icon="@Icons.Material.Filled.Search">Search Books</MudNavLink>
+        <MudNavLink Href="currently-reading" Icon="@Icons.Material.Filled.AutoStories">Currently Reading</MudNavLink>
+        <MudNavLink Href="books-read" Icon="@Icons.Material.Filled.History">Books Read</MudNavLink>
+    </div>
+
+    <div class="nav-section">
+        <div class="nav-section-title">Games</div>
+        <MudNavLink Href="search-games" Icon="@Icons.Material.Filled.Gamepad">Search Games</MudNavLink>
+        <MudNavLink Href="currently-playing" Icon="@Icons.Material.Filled.VideogameAsset">Currently Playing</MudNavLink>
+        <MudNavLink Href="games-played" Icon="@Icons.Material.Filled.SportsEsports">Games Played</MudNavLink>
+    </div>
+
     <MudNavLink Href="settings" Icon="@Icons.Material.Filled.Settings">Settings</MudNavLink>
 </MudNavMenu>
