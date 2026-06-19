@@ -1,0 +1,145 @@
+@page "/currently-playing"
+@rendermode InteractiveServer
+@inject IGameRepository Repository
+@inject ILogger<CurrentlyPlaying> Logger
+
+<PageTitle>Currently Playing | BookNThings</PageTitle>
+
+<MudStack Spacing="3">
+    <MudText Typo="Typo.h3">Currently Playing</MudText>
+
+    @if (isLoading)
+    {
+        <MudPaper Class="panel loading-panel" Elevation="0">
+            <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+            <MudText>Loading currently playing games</MudText>
+        </MudPaper>
+    }
+    else if (!string.IsNullOrWhiteSpace(errorMessage))
+    {
+        <MudPaper Class="panel" Elevation="0">
+            <MudAlert Severity="Severity.Error" Variant="Variant.Outlined">@errorMessage</MudAlert>
+        </MudPaper>
+    }
+    else if (games.Count == 0)
+    {
+        <MudPaper Class="empty-state" Elevation="0">
+            <MudText Typo="Typo.h5">No games are currently being played</MudText>
+            <MudText Class="muted-text">Save a game from search without a played date to keep it here until you finish it.</MudText>
+            <MudButton Href="search-games" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Search">Search games</MudButton>
+        </MudPaper>
+    }
+    else
+    {
+        <MudPaper Class="panel search-panel" Elevation="0">
+            <MudTextField @bind-Value="searchText"
+                          Placeholder="Search currently playing"
+                          Variant="Variant.Outlined"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search"
+                          Immediate="false" />
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ApplySearch" StartIcon="@Icons.Material.Filled.Search">
+                Search
+            </MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="ClearSearch" StartIcon="@Icons.Material.Filled.Clear">
+                Clear
+            </MudButton>
+        </MudPaper>
+
+        <MudPaper Class="panel table-panel" Elevation="0">
+            <MudTable Items="@CurrentlyPlayingFiltered" Dense="true" Hover="true" Breakpoint="Breakpoint.Sm" RowsPerPage="25">
+                <HeaderContent>
+                    <MudTh>Title</MudTh>
+                    <MudTh>Publisher</MudTh>
+                    <MudTh>Studio</MudTh>
+                    <MudTh>Released</MudTh>
+                    <MudTh>Genres</MudTh>
+                    <MudTh></MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Title">
+                        <MudText Typo="Typo.subtitle2">@context.Title</MudText>
+                        @if (!string.IsNullOrWhiteSpace(context.Developer))
+                        {
+                            <MudText Typo="Typo.caption" Class="muted-text">@context.Developer</MudText>
+                        }
+                    </MudTd>
+                    <MudTd DataLabel="Publisher">@context.Publisher</MudTd>
+                    <MudTd DataLabel="Studio">@context.Studio</MudTd>
+                    <MudTd DataLabel="Released">@context.ReleasedDate.ToString("yyyy-MM-dd")</MudTd>
+                    <MudTd DataLabel="Genres">@string.Join(", ", context.Genres)</MudTd>
+                    <MudTd DataLabel="Actions">
+                        <MudButton Href="@($"currently-playing/{context.Id}")" Variant="Variant.Text" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Filled.Edit">
+                            Edit
+                        </MudButton>
+                    </MudTd>
+                </RowTemplate>
+                <NoRecordsContent>
+                    <MudText Class="muted-text">No games match your search.</MudText>
+                </NoRecordsContent>
+                <PagerContent>
+                    <MudTablePager PageSizeOptions="new[] { 25, 50, 100 }" />
+                </PagerContent>
+            </MudTable>
+        </MudPaper>
+    }
+</MudStack>
+
+@code {
+    private bool isLoading = true;
+    private string? errorMessage;
+    private string searchText = "";
+    private string appliedSearchText = "";
+    private List<Game> games = [];
+    private IEnumerable<Game> CurrentlyPlayingFiltered => games
+        .Where(MatchesSearch)
+        .OrderBy(item => item.Title);
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            games = (await Repository.GetAllAsync(CancellationToken.None))
+                .Where(game => !game.DatePlayed.HasValue)
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Loading currently playing games failed.");
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void ApplySearch()
+    {
+        appliedSearchText = searchText.Trim();
+    }
+
+    private void ClearSearch()
+    {
+        searchText = "";
+        appliedSearchText = "";
+    }
+
+    private bool MatchesSearch(Game game)
+    {
+        if (string.IsNullOrWhiteSpace(appliedSearchText))
+        {
+            return true;
+        }
+
+        return ContainsSearchText(game.Title)
+            || ContainsSearchText(game.Publisher)
+            || ContainsSearchText(game.Studio)
+            || ContainsSearchText(game.Developer)
+            || game.Genres.Any(ContainsSearchText);
+    }
+
+    private bool ContainsSearchText(string? value) =>
+        !string.IsNullOrWhiteSpace(value)
+        && value.Contains(appliedSearchText, StringComparison.OrdinalIgnoreCase);
+}

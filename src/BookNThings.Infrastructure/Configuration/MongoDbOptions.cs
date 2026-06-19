@@ -9,4 +9,6 @@ public sealed class MongoDbOptions
     public string DatabaseName { get; set; } = "booknthings";
 
     public string BooksCollection { get; set; } = "books";
+
+    public string GamesCollection { get; set; } = "games";
 }

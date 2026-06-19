@@ -1,0 +1,258 @@
+@page "/search-games"
+@rendermode InteractiveServer
+@inject GameSearchOrchestrator SearchOrchestrator
+@inject IGameRepository Repository
+@inject ILogger<SearchGames> Logger
+
+<PageTitle>Search Games | BookNThings</PageTitle>
+
+<MudStack Spacing="3">
+    <MudText Typo="Typo.h3">Search Games</MudText>
+    <MudText Class="muted-text">Search for games and return them in a shape ready for your MongoDB game records.</MudText>
+
+    <MudPaper Class="panel" Elevation="0">
+        <MudStack Spacing="2">
+            <MudTextField @bind-Value="query"
+                          Label="Search query"
+                          Placeholder="Try: story-driven sci-fi RPGs from the 2010s"
+                          Variant="Variant.Outlined"
+                          Disabled="@isSearching"
+                          Immediate="true" />
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SearchAsync" Disabled="@isSearching" StartIcon="@Icons.Material.Filled.Search">
+                @if (isSearching)
+                {
+                    <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="button-spinner" />
+                    <span>Searching</span>
+                }
+                else
+                {
+                    <span>Search</span>
+                }
+            </MudButton>
+
+            @if (!string.IsNullOrWhiteSpace(errorMessage))
+            {
+                <MudAlert Severity="Severity.Error" Variant="Variant.Outlined">@errorMessage</MudAlert>
+            }
+        </MudStack>
+    </MudPaper>
+
+    @if (results.Count > 0)
+    {
+        <MudGrid>
+            @foreach (var game in results)
+            {
+                <MudItem xs="12" md="6" lg="4">
+                    <MudCard Class="book-card" Elevation="0">
+                        <MudCardContent>
+                            <MudText Typo="Typo.h6">@game.Title</MudText>
+                            <MudText Typo="Typo.subtitle2" Class="muted-text">@game.Studio</MudText>
+                            <MudText Typo="Typo.body2">Publisher: @game.Publisher</MudText>
+                            @if (!string.IsNullOrWhiteSpace(game.Developer))
+                            {
+                                <MudText Typo="Typo.body2">Developer: @game.Developer</MudText>
+                            }
+                            <MudDivider Class="divider-space" />
+                            <MudGrid>
+                                <MudItem xs="6">
+                                    <MudText Typo="Typo.caption" Class="muted-text">Released</MudText>
+                                    <MudText Typo="Typo.body2"><b>@game.ReleasedDate.ToString("yyyy-MM-dd")</b></MudText>
+                                </MudItem>
+                                <MudItem xs="6">
+                                    <MudText Typo="Typo.caption" Class="muted-text">Metacritic</MudText>
+                                    <MudText Typo="Typo.body2"><b>@(game.Rating?.ToString("0") ?? "Unknown")</b></MudText>
+                                </MudItem>
+                            </MudGrid>
+                            @if (game.Genres.Count > 0)
+                            {
+                                <MudStack Row="true" Spacing="1" Class="tag-row">
+                                    @foreach (var genre in game.Genres)
+                                    {
+                                        <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined">@genre</MudChip>
+                                    }
+                                </MudStack>
+                            }
+                        </MudCardContent>
+                        <MudCardActions>
+                            @if (IsSelectingPlayedDate(game))
+                            {
+                                <MudStack Spacing="2" Class="save-date-panel">
+                                    <MudDatePicker Label="Date played"
+                                                   Date="@GetPlayedDate(game)"
+                                                   DateChanged="date => SetPlayedDate(game, date)"
+                                                   Variant="Variant.Outlined"
+                                                   Disabled="@savingKeys.Contains(GetGameKey(game))" />
+                                    <MudStack Row="true" Spacing="1" Class="action-row">
+                                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="() => SaveAsync(game)" Disabled="@savingKeys.Contains(GetGameKey(game))" StartIcon="@Icons.Material.Filled.Save">
+                                            @(savingKeys.Contains(GetGameKey(game)) ? "Saving" : "Save played")
+                                        </MudButton>
+                                        <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="() => CancelPlayedDateSelection(game)" Disabled="@savingKeys.Contains(GetGameKey(game))">
+                                            Cancel
+                                        </MudButton>
+                                    </MudStack>
+                                </MudStack>
+                            }
+                            else
+                            {
+                                <MudStack Row="true" Spacing="1" Class="action-row">
+                                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="() => SaveCurrentlyPlayingAsync(game)" Disabled="@savingKeys.Contains(GetGameKey(game))" StartIcon="@Icons.Material.Filled.Gamepad">
+                                        Currently playing
+                                    </MudButton>
+                                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="() => StartPlayedDateSelection(game)" Disabled="@savingKeys.Contains(GetGameKey(game))" StartIcon="@Icons.Material.Filled.Save">
+                                        Save played
+                                    </MudButton>
+                                </MudStack>
+                            }
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+            }
+        </MudGrid>
+    }
+</MudStack>
+
+@code {
+    private string query = "";
+    private string? errorMessage;
+    private bool isSearching;
+    private readonly List<Game> results = [];
+    private readonly Dictionary<string, DateTime?> playedDates = [];
+    private readonly HashSet<string> selectingPlayedDateKeys = [];
+    private readonly HashSet<string> savingKeys = [];
+
+    private async Task SearchAsync()
+    {
+        errorMessage = null;
+        results.Clear();
+
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            errorMessage = "Enter a search query before searching.";
+            return;
+        }
+
+        try
+        {
+            isSearching = true;
+            var games = await SearchOrchestrator.SearchAsync(query, CancellationToken.None);
+            results.AddRange(games);
+            playedDates.Clear();
+            selectingPlayedDateKeys.Clear();
+            savingKeys.Clear();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Game search failed.");
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            isSearching = false;
+        }
+    }
+
+    private async Task SaveAsync(Game game)
+    {
+        errorMessage = null;
+        var key = GetGameKey(game);
+        var datePlayed = GetPlayedDate(game) ?? DateTime.Today;
+        savingKeys.Add(key);
+
+        try
+        {
+            var playedGame = new Game
+            {
+                Id = game.Id,
+                Title = game.Title,
+                Publisher = game.Publisher,
+                Studio = game.Studio,
+                ReleasedDate = game.ReleasedDate,
+                DatePlayed = datePlayed.Date,
+                Rating = game.Rating,
+                Genres = [.. game.Genres],
+                Developer = game.Developer,
+                CreatedAt = game.CreatedAt == default ? DateTime.UtcNow : game.CreatedAt
+            };
+
+            await Repository.SaveAsync(playedGame, CancellationToken.None);
+            selectingPlayedDateKeys.Remove(key);
+            playedDates.Remove(key);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Saving game failed.");
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            savingKeys.Remove(key);
+        }
+    }
+
+    private async Task SaveCurrentlyPlayingAsync(Game game)
+    {
+        errorMessage = null;
+        var key = GetGameKey(game);
+        savingKeys.Add(key);
+
+        try
+        {
+            var currentlyPlaying = new Game
+            {
+                Id = game.Id,
+                Title = game.Title,
+                Publisher = game.Publisher,
+                Studio = game.Studio,
+                ReleasedDate = game.ReleasedDate,
+                DatePlayed = null,
+                Rating = game.Rating,
+                Genres = [.. game.Genres],
+                Developer = game.Developer,
+                CreatedAt = game.CreatedAt == default ? DateTime.UtcNow : game.CreatedAt
+            };
+
+            await Repository.SaveAsync(currentlyPlaying, CancellationToken.None);
+            selectingPlayedDateKeys.Remove(key);
+            playedDates.Remove(key);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Saving currently playing game failed.");
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            savingKeys.Remove(key);
+        }
+    }
+
+    private void StartPlayedDateSelection(Game game)
+    {
+        var key = GetGameKey(game);
+        errorMessage = null;
+        selectingPlayedDateKeys.Add(key);
+        playedDates.TryAdd(key, DateTime.Today);
+    }
+
+    private void CancelPlayedDateSelection(Game game)
+    {
+        var key = GetGameKey(game);
+        selectingPlayedDateKeys.Remove(key);
+        playedDates.Remove(key);
+    }
+
+    private bool IsSelectingPlayedDate(Game game) => selectingPlayedDateKeys.Contains(GetGameKey(game));
+
+    private DateTime? GetPlayedDate(Game game)
+    {
+        var key = GetGameKey(game);
+        return playedDates.TryGetValue(key, out var date) ? date : DateTime.Today;
+    }
+
+    private void SetPlayedDate(Game game, DateTime? date)
+    {
+        playedDates[GetGameKey(game)] = date ?? DateTime.Today;
+    }
+
+    private static string GetGameKey(Game game) => $"{game.Title.Trim()}|{game.Publisher.Trim()}|{game.ReleasedDate:O}";
+}

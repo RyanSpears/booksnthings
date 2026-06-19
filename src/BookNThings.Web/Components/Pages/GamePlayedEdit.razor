@@ -1,0 +1,190 @@
+@page "/games-played/{Id}"
+@rendermode InteractiveServer
+@inject IGameRepository Repository
+@inject ILogger<GamePlayedEdit> Logger
+@inject NavigationManager Navigation
+
+<PageTitle>Edit Game Played | BookNThings</PageTitle>
+
+<MudStack Spacing="3">
+    <MudText Typo="Typo.h3">Edit Game Played</MudText>
+
+    @if (isLoading)
+    {
+        <MudPaper Class="panel loading-panel" Elevation="0">
+            <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+            <MudText>Loading game played record</MudText>
+        </MudPaper>
+    }
+    else if (!string.IsNullOrWhiteSpace(errorMessage))
+    {
+        <MudPaper Class="panel" Elevation="0">
+            <MudAlert Severity="Severity.Error" Variant="Variant.Outlined">@errorMessage</MudAlert>
+            <MudButton Href="games-played" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowBack">Back to Games Played</MudButton>
+        </MudPaper>
+    }
+    else if (game is not null)
+    {
+        <MudPaper Class="panel" Elevation="0">
+            <MudStack Spacing="3">
+                <div>
+                    <MudText Typo="Typo.h5">@game.Title</MudText>
+                    <MudText Typo="Typo.subtitle2" Class="muted-text">@game.Publisher</MudText>
+                    <MudText Typo="Typo.body2">Studio: @game.Studio</MudText>
+                </div>
+
+                <MudGrid>
+                    <MudItem xs="12" md="4">
+                        <MudText Typo="Typo.caption" Class="muted-text">Released</MudText>
+                        <MudText Typo="Typo.body2"><b>@game.ReleasedDate.ToString("yyyy-MM-dd")</b></MudText>
+                    </MudItem>
+                    <MudItem xs="12" md="4">
+                        <MudText Typo="Typo.caption" Class="muted-text">Rating</MudText>
+                        <MudText Typo="Typo.body2"><b>@(game.Rating?.ToString("0") ?? "Unknown")</b></MudText>
+                    </MudItem>
+                    <MudItem xs="12" md="4">
+                        <MudText Typo="Typo.caption" Class="muted-text">Genres</MudText>
+                        <MudText Typo="Typo.body2"><b>@string.Join(", ", game.Genres)</b></MudText>
+                    </MudItem>
+                </MudGrid>
+
+                <MudDatePicker Label="Date played"
+                               Date="@datePlayed"
+                               DateChanged="date => datePlayed = date ?? DateTime.Today"
+                               Variant="Variant.Outlined"
+                               Disabled="@isSaving" />
+
+                <MudStack Row="true" Spacing="2" Class="action-row">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="UpdatePlayedDateAsync" Disabled="@isSaving" StartIcon="@Icons.Material.Filled.Save">
+                        @(isSaving ? "Saving" : "Save date")
+                    </MudButton>
+                    <MudButton Href="games-played" Variant="Variant.Text" Color="Color.Primary" Disabled="@isSaving" StartIcon="@Icons.Material.Filled.ArrowBack">
+                        Cancel
+                    </MudButton>
+                </MudStack>
+            </MudStack>
+        </MudPaper>
+
+        <MudPaper Class="panel danger-zone" Elevation="0">
+            <MudStack Spacing="2">
+                <MudText Typo="Typo.h6">Delete game played</MudText>
+                <MudText Class="muted-text">Remove this game from Games Played entirely.</MudText>
+
+                @if (isConfirmingDelete)
+                {
+                    <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined">This cannot be undone.</MudAlert>
+                    <MudStack Row="true" Spacing="2" Class="action-row">
+                        <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="DeleteAsync" Disabled="@isDeleting" StartIcon="@Icons.Material.Filled.DeleteForever">
+                            @(isDeleting ? "Deleting" : "Delete permanently")
+                        </MudButton>
+                        <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="() => isConfirmingDelete = false" Disabled="@isDeleting">
+                            Keep it
+                        </MudButton>
+                    </MudStack>
+                }
+                else
+                {
+                    <MudButton Variant="Variant.Outlined" Color="Color.Error" OnClick="() => isConfirmingDelete = true" StartIcon="@Icons.Material.Filled.Delete">
+                        Delete
+                    </MudButton>
+                }
+            </MudStack>
+        </MudPaper>
+    }
+</MudStack>
+
+@code {
+    [Parameter]
+    public string? Id { get; set; }
+
+    private Game? game;
+    private DateTime? datePlayed;
+    private bool isLoading = true;
+    private bool isSaving;
+    private bool isDeleting;
+    private bool isConfirmingDelete;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (string.IsNullOrWhiteSpace(Id))
+        {
+            errorMessage = "Game played id is required.";
+            isLoading = false;
+            return;
+        }
+
+        try
+        {
+            game = await Repository.GetByIdAsync(Id, CancellationToken.None);
+            if (game is null)
+            {
+                errorMessage = "Game played record was not found.";
+                return;
+            }
+
+            datePlayed = game.DatePlayed ?? DateTime.Today;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Loading game played failed.");
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task UpdatePlayedDateAsync()
+    {
+        if (string.IsNullOrWhiteSpace(Id))
+        {
+            errorMessage = "Game played id is required.";
+            return;
+        }
+
+        try
+        {
+            isSaving = true;
+            errorMessage = null;
+            await Repository.UpdatePlayedDateAsync(Id, (datePlayed ?? DateTime.Today).Date, CancellationToken.None);
+            Navigation.NavigateTo("games-played");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Updating game played failed.");
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private async Task DeleteAsync()
+    {
+        if (string.IsNullOrWhiteSpace(Id))
+        {
+            errorMessage = "Game played id is required.";
+            return;
+        }
+
+        try
+        {
+            isDeleting = true;
+            errorMessage = null;
+            await Repository.DeleteAsync(Id, CancellationToken.None);
+            Navigation.NavigateTo("games-played");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Deleting game played failed.");
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            isDeleting = false;
+        }
+    }
+}
