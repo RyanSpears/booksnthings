@@ -46,9 +46,11 @@ builder.Services.Configure<LocalShowsOptions>(options =>
 });
 
 builder.Services.AddScoped<BookSearchOrchestrator>();
+builder.Services.AddScoped<ShowSearchOrchestrator>();
 builder.Services.AddScoped<GameSearchOrchestrator>();
 builder.Services.AddScoped<ConnectionStatusService>();
 builder.Services.AddHttpClient<IBookSearchService, OpenAiBookSearchService>();
+builder.Services.AddHttpClient<IShowSearchService, OpenAiShowSearchService>();
 builder.Services.AddHttpClient<IGameSearchService, OpenAiGameSearchService>();
 builder.Services.AddScoped<IMongoBookRepository, MongoBookRepository>();
 builder.Services.AddScoped<IMongoGameRepository, MongoGameRepository>();

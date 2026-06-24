@@ -110,5 +110,21 @@
     ],
     "developer": "Insomniac Games",
     "createdAt": "2026-06-24T03:55:05.642Z"
+  },
+  {
+    "id": "6a3c4cedd92e6c26bd8ce776",
+    "title": "Pragmata",
+    "publisher": "Capcom",
+    "studio": "Capcom",
+    "releasedDate": "2023-10-17T00:00:00",
+    "datePlayed": null,
+    "rating": 66,
+    "genres": [
+      "Action",
+      "Adventure",
+      "Sci-Fi"
+    ],
+    "developer": "Capcom",
+    "createdAt": "2026-06-24T21:32:22.322872Z"
   }
 ]
