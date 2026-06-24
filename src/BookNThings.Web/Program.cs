@@ -39,6 +39,11 @@ builder.Services.Configure<LocalGamesOptions>(options =>
     options.DataDirectory = Path.Combine(builder.Environment.ContentRootPath, "Data");
     options.FileName = "games.json";
 });
+builder.Services.Configure<LocalShowsOptions>(options =>
+{
+    options.DataDirectory = Path.Combine(builder.Environment.ContentRootPath, "Data");
+    options.FileName = "show.json";
+});
 
 builder.Services.AddScoped<BookSearchOrchestrator>();
 builder.Services.AddScoped<GameSearchOrchestrator>();
@@ -47,16 +52,22 @@ builder.Services.AddHttpClient<IBookSearchService, OpenAiBookSearchService>();
 builder.Services.AddHttpClient<IGameSearchService, OpenAiGameSearchService>();
 builder.Services.AddScoped<IMongoBookRepository, MongoBookRepository>();
 builder.Services.AddScoped<IMongoGameRepository, MongoGameRepository>();
+builder.Services.AddScoped<IMongoShowRepository, MongoShowRepository>();
 builder.Services.AddScoped<JsonBookStore>();
 builder.Services.AddScoped<JsonGameStore>();
+builder.Services.AddScoped<JsonShowStore>();
 builder.Services.AddScoped<SynchronizingBookRepository>();
 builder.Services.AddScoped<SynchronizingGameRepository>();
+builder.Services.AddScoped<SynchronizingShowRepository>();
 builder.Services.AddScoped<IBookRepository>(provider => provider.GetRequiredService<SynchronizingBookRepository>());
 builder.Services.AddScoped<IBookDataSynchronizer>(provider => provider.GetRequiredService<SynchronizingBookRepository>());
 builder.Services.AddScoped<IGameRepository>(provider => provider.GetRequiredService<SynchronizingGameRepository>());
 builder.Services.AddScoped<IGameDataSynchronizer>(provider => provider.GetRequiredService<SynchronizingGameRepository>());
+builder.Services.AddScoped<IShowRepository>(provider => provider.GetRequiredService<SynchronizingShowRepository>());
+builder.Services.AddScoped<IShowDataSynchronizer>(provider => provider.GetRequiredService<SynchronizingShowRepository>());
 builder.Services.AddHostedService<BookDataAlignmentHostedService>();
 builder.Services.AddHostedService<GameDataAlignmentHostedService>();
+builder.Services.AddHostedService<ShowDataAlignmentHostedService>();
 
 var app = builder.Build();
 

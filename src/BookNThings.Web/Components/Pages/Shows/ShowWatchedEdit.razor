@@ -1,0 +1,190 @@
+@page "/shows-watched/{Id}"
+@rendermode InteractiveServer
+@inject IShowRepository Repository
+@inject ILogger<ShowWatchedEdit> Logger
+@inject NavigationManager Navigation
+
+<PageTitle>Edit Show Watched | BookNThings</PageTitle>
+
+<MudStack Spacing="3">
+    <MudText Typo="Typo.h3">Edit Show Watched</MudText>
+
+    @if (isLoading)
+    {
+        <MudPaper Class="panel loading-panel" Elevation="0">
+            <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+            <MudText>Loading show watched record</MudText>
+        </MudPaper>
+    }
+    else if (!string.IsNullOrWhiteSpace(errorMessage))
+    {
+        <MudPaper Class="panel" Elevation="0">
+            <MudAlert Severity="Severity.Error" Variant="Variant.Outlined">@errorMessage</MudAlert>
+            <MudButton Href="shows-watched" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowBack">Back to Shows Watched</MudButton>
+        </MudPaper>
+    }
+    else if (show is not null)
+    {
+        <MudPaper Class="panel" Elevation="0">
+            <MudStack Spacing="3">
+                <div>
+                    <MudText Typo="Typo.h5">@show.Title</MudText>
+                    <MudText Typo="Typo.subtitle2" Class="muted-text">@show.Network</MudText>
+                    <MudText Typo="Typo.body2">Studio: @show.Studio</MudText>
+                </div>
+
+                <MudGrid>
+                    <MudItem xs="12" md="4">
+                        <MudText Typo="Typo.caption" Class="muted-text">Season</MudText>
+                        <MudText Typo="Typo.body2"><b>@show.Season</b></MudText>
+                    </MudItem>
+                    <MudItem xs="12" md="4">
+                        <MudText Typo="Typo.caption" Class="muted-text">Rating</MudText>
+                        <MudText Typo="Typo.body2"><b>@(show.Rating?.ToString("0.0") ?? "Unknown")</b></MudText>
+                    </MudItem>
+                    <MudItem xs="12" md="4">
+                        <MudText Typo="Typo.caption" Class="muted-text">Genres</MudText>
+                        <MudText Typo="Typo.body2"><b>@string.Join(", ", show.Genres)</b></MudText>
+                    </MudItem>
+                </MudGrid>
+
+                <MudDatePicker Label="Date watched"
+                               Date="@dateWatched"
+                               DateChanged="date => dateWatched = date ?? DateTime.Today"
+                               Variant="Variant.Outlined"
+                               Disabled="@isSaving" />
+
+                <MudStack Row="true" Spacing="2" Class="action-row">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="UpdateWatchedDateAsync" Disabled="@isSaving" StartIcon="@Icons.Material.Filled.Save">
+                        @(isSaving ? "Saving" : "Save date")
+                    </MudButton>
+                    <MudButton Href="shows-watched" Variant="Variant.Text" Color="Color.Primary" Disabled="@isSaving" StartIcon="@Icons.Material.Filled.ArrowBack">
+                        Cancel
+                    </MudButton>
+                </MudStack>
+            </MudStack>
+        </MudPaper>
+
+        <MudPaper Class="panel danger-zone" Elevation="0">
+            <MudStack Spacing="2">
+                <MudText Typo="Typo.h6">Delete show watched</MudText>
+                <MudText Class="muted-text">Remove this season entry from Shows Watched entirely.</MudText>
+
+                @if (isConfirmingDelete)
+                {
+                    <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined">This cannot be undone.</MudAlert>
+                    <MudStack Row="true" Spacing="2" Class="action-row">
+                        <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="DeleteAsync" Disabled="@isDeleting" StartIcon="@Icons.Material.Filled.DeleteForever">
+                            @(isDeleting ? "Deleting" : "Delete permanently")
+                        </MudButton>
+                        <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="() => isConfirmingDelete = false" Disabled="@isDeleting">
+                            Keep it
+                        </MudButton>
+                    </MudStack>
+                }
+                else
+                {
+                    <MudButton Variant="Variant.Outlined" Color="Color.Error" OnClick="() => isConfirmingDelete = true" StartIcon="@Icons.Material.Filled.Delete">
+                        Delete
+                    </MudButton>
+                }
+            </MudStack>
+        </MudPaper>
+    }
+</MudStack>
+
+@code {
+    [Parameter]
+    public string? Id { get; set; }
+
+    private Show? show;
+    private DateTime? dateWatched;
+    private bool isLoading = true;
+    private bool isSaving;
+    private bool isDeleting;
+    private bool isConfirmingDelete;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (string.IsNullOrWhiteSpace(Id))
+        {
+            errorMessage = "Show watched id is required.";
+            isLoading = false;
+            return;
+        }
+
+        try
+        {
+            show = await Repository.GetByIdAsync(Id, CancellationToken.None);
+            if (show is null)
+            {
+                errorMessage = "Show watched record was not found.";
+                return;
+            }
+
+            dateWatched = show.DateWatched ?? DateTime.Today;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Loading show watched failed.");
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task UpdateWatchedDateAsync()
+    {
+        if (string.IsNullOrWhiteSpace(Id))
+        {
+            errorMessage = "Show watched id is required.";
+            return;
+        }
+
+        try
+        {
+            isSaving = true;
+            errorMessage = null;
+            await Repository.UpdateWatchedDateAsync(Id, (dateWatched ?? DateTime.Today).Date, CancellationToken.None);
+            Navigation.NavigateTo("shows-watched");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Updating show watched failed.");
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private async Task DeleteAsync()
+    {
+        if (string.IsNullOrWhiteSpace(Id))
+        {
+            errorMessage = "Show watched id is required.";
+            return;
+        }
+
+        try
+        {
+            isDeleting = true;
+            errorMessage = null;
+            await Repository.DeleteAsync(Id, CancellationToken.None);
+            Navigation.NavigateTo("shows-watched");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Deleting show watched failed.");
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            isDeleting = false;
+        }
+    }
+}

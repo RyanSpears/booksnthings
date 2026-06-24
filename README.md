@@ -1,6 +1,6 @@
 # BookNThings
 
-BookNThings is a local-deployable .NET 10 Blazor Web App for finding books with natural language, validating OpenAI structured JSON outputs, saving selected books to MongoDB Atlas with a read date, and browsing books read.
+BookNThings is a local-deployable .NET 10 Blazor Web App for finding books and games with natural language, validating OpenAI structured JSON outputs, saving selected records to MongoDB Atlas, and browsing saved media.
 
 ## Architecture
 
@@ -24,7 +24,7 @@ BookNThings is a local-deployable .NET 10 Blazor Web App for finding books with 
 4. Copy the `mongodb+srv://...` connection string.
 5. Set `MongoDb__ConnectionString` locally, or use `MONGODB_CONNECTION_STRING` with Docker Compose.
 
-The app stores books in database `booknthings`, collection `books`, unless overridden.
+The app stores books in database `booknthings`, collection `books`, games in `games`, and TV shows in `shows`, unless overridden.
 
 ## OpenAI Setup
 
@@ -47,6 +47,8 @@ OpenAI__Model
 MongoDb__ConnectionString
 MongoDb__DatabaseName
 MongoDb__BooksCollection
+MongoDb__GamesCollection
+MongoDb__ShowsCollection
 ```
 
 ## User Secrets
@@ -59,6 +61,8 @@ OpenAI:Model
 MongoDb:ConnectionString
 MongoDb:DatabaseName
 MongoDb:BooksCollection
+MongoDb:GamesCollection
+MongoDb:ShowsCollection
 ```
 
 Update them with real values:

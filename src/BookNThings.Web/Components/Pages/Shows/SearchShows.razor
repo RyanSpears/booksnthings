@@ -1,0 +1,267 @@
+@page "/search-shows"
+@rendermode InteractiveServer
+@inject ShowSearchOrchestrator SearchOrchestrator
+@inject IShowRepository Repository
+@inject ILogger<SearchShows> Logger
+
+<PageTitle>Search Shows | BookNThings</PageTitle>
+
+<MudStack Spacing="3">
+    <MudText Typo="Typo.h3">Search Shows</MudText>
+    <MudText Class="muted-text">Search for TV show seasons and save them as currently watching or watched.</MudText>
+
+    <MudPaper Class="panel" Elevation="0">
+        <MudStack Spacing="2">
+            <MudTextField @bind-Value="query"
+                          Label="Search query"
+                          Placeholder="Try: prestige sci-fi shows with multiple seasons"
+                          Variant="Variant.Outlined"
+                          Disabled="@isSearching"
+                          Immediate="true" />
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SearchAsync" Disabled="@isSearching" StartIcon="@Icons.Material.Filled.Search">
+                @if (isSearching)
+                {
+                    <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="button-spinner" />
+                    <span>Searching</span>
+                }
+                else
+                {
+                    <span>Search</span>
+                }
+            </MudButton>
+
+            @if (!string.IsNullOrWhiteSpace(errorMessage))
+            {
+                <MudAlert Severity="Severity.Error" Variant="Variant.Outlined">@errorMessage</MudAlert>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(successMessage))
+            {
+                <MudAlert Severity="Severity.Success" Variant="Variant.Outlined">@successMessage</MudAlert>
+            }
+        </MudStack>
+    </MudPaper>
+
+    @if (results.Count > 0)
+    {
+        <MudGrid>
+            @foreach (var show in results)
+            {
+                <MudItem xs="12" md="6" lg="4">
+                    <MudCard Class="book-card" Elevation="0">
+                        <MudCardContent>
+                            <MudText Typo="Typo.h6">@show.Title</MudText>
+                            <MudText Typo="Typo.subtitle2" Class="muted-text">@show.Network</MudText>
+                            <MudText Typo="Typo.body2">Studio: @show.Studio</MudText>
+                            <MudText Typo="Typo.body2">Season: @show.Season</MudText>
+                            @if (!string.IsNullOrWhiteSpace(show.Creator))
+                            {
+                                <MudText Typo="Typo.body2">Creator: @show.Creator</MudText>
+                            }
+                            <MudDivider Class="divider-space" />
+                            <MudGrid>
+                                <MudItem xs="6">
+                                    <MudText Typo="Typo.caption" Class="muted-text">Rating</MudText>
+                                    <MudText Typo="Typo.body2"><b>@(show.Rating?.ToString("0.0") ?? "Unknown")</b></MudText>
+                                </MudItem>
+                            </MudGrid>
+                            @if (show.Genres.Count > 0)
+                            {
+                                <MudStack Row="true" Spacing="1" Class="tag-row">
+                                    @foreach (var genre in show.Genres)
+                                    {
+                                        <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined">@genre</MudChip>
+                                    }
+                                </MudStack>
+                            }
+                        </MudCardContent>
+                        <MudCardActions>
+                            @if (IsSelectingWatchedDate(show))
+                            {
+                                <MudStack Spacing="2" Class="save-date-panel">
+                                    <MudDatePicker Label="Date watched"
+                                                   Date="@GetWatchedDate(show)"
+                                                   DateChanged="date => SetWatchedDate(show, date)"
+                                                   Variant="Variant.Outlined"
+                                                   Disabled="@savingKeys.Contains(GetShowKey(show))" />
+                                    <MudStack Row="true" Spacing="1" Class="action-row">
+                                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="() => SaveAsync(show)" Disabled="@savingKeys.Contains(GetShowKey(show))" StartIcon="@Icons.Material.Filled.Save">
+                                            @(savingKeys.Contains(GetShowKey(show)) ? "Saving" : "Save watched")
+                                        </MudButton>
+                                        <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="() => CancelWatchedDateSelection(show)" Disabled="@savingKeys.Contains(GetShowKey(show))">
+                                            Cancel
+                                        </MudButton>
+                                    </MudStack>
+                                </MudStack>
+                            }
+                            else
+                            {
+                                <MudStack Row="true" Spacing="1" Class="action-row">
+                                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="() => SaveCurrentlyWatchingAsync(show)" Disabled="@savingKeys.Contains(GetShowKey(show))" StartIcon="@Icons.Material.Filled.LiveTv">
+                                        Currently watching
+                                    </MudButton>
+                                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="() => StartWatchedDateSelection(show)" Disabled="@savingKeys.Contains(GetShowKey(show))" StartIcon="@Icons.Material.Filled.Save">
+                                        Save watched
+                                    </MudButton>
+                                </MudStack>
+                            }
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+            }
+        </MudGrid>
+    }
+</MudStack>
+
+@code {
+    private string query = "";
+    private string? errorMessage;
+    private string? successMessage;
+    private bool isSearching;
+    private readonly List<Show> results = [];
+    private readonly Dictionary<string, DateTime?> watchedDates = [];
+    private readonly HashSet<string> selectingWatchedDateKeys = [];
+    private readonly HashSet<string> savingKeys = [];
+
+    private async Task SearchAsync()
+    {
+        errorMessage = null;
+        successMessage = null;
+        results.Clear();
+
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            errorMessage = "Enter a search query before searching.";
+            return;
+        }
+
+        try
+        {
+            isSearching = true;
+            var shows = await SearchOrchestrator.SearchAsync(query, CancellationToken.None);
+            results.AddRange(shows);
+            watchedDates.Clear();
+            selectingWatchedDateKeys.Clear();
+            savingKeys.Clear();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Show search failed.");
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            isSearching = false;
+        }
+    }
+
+    private async Task SaveAsync(Show show)
+    {
+        errorMessage = null;
+        successMessage = null;
+        var key = GetShowKey(show);
+        var dateWatched = GetWatchedDate(show) ?? DateTime.Today;
+        savingKeys.Add(key);
+
+        try
+        {
+            var watchedShow = new Show
+            {
+                Id = show.Id,
+                Title = show.Title,
+                Network = show.Network,
+                Studio = show.Studio,
+                Season = show.Season,
+                DateWatched = dateWatched.Date,
+                Rating = show.Rating,
+                Genres = [.. show.Genres],
+                Creator = show.Creator,
+                CreatedAt = show.CreatedAt == default ? DateTime.UtcNow : show.CreatedAt
+            };
+
+            await Repository.SaveAsync(watchedShow, CancellationToken.None);
+            successMessage = $"Saved {show.Title} season {show.Season}.";
+            selectingWatchedDateKeys.Remove(key);
+            watchedDates.Remove(key);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Saving show failed.");
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            savingKeys.Remove(key);
+        }
+    }
+
+    private async Task SaveCurrentlyWatchingAsync(Show show)
+    {
+        errorMessage = null;
+        successMessage = null;
+        var key = GetShowKey(show);
+        savingKeys.Add(key);
+
+        try
+        {
+            var currentlyWatching = new Show
+            {
+                Id = show.Id,
+                Title = show.Title,
+                Network = show.Network,
+                Studio = show.Studio,
+                Season = show.Season,
+                DateWatched = null,
+                Rating = show.Rating,
+                Genres = [.. show.Genres],
+                Creator = show.Creator,
+                CreatedAt = show.CreatedAt == default ? DateTime.UtcNow : show.CreatedAt
+            };
+
+            await Repository.SaveAsync(currentlyWatching, CancellationToken.None);
+            successMessage = $"Saved {show.Title} season {show.Season} to Currently Watching.";
+            selectingWatchedDateKeys.Remove(key);
+            watchedDates.Remove(key);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Saving currently watching show failed.");
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            savingKeys.Remove(key);
+        }
+    }
+
+    private void StartWatchedDateSelection(Show show)
+    {
+        var key = GetShowKey(show);
+        errorMessage = null;
+        successMessage = null;
+        selectingWatchedDateKeys.Add(key);
+        watchedDates.TryAdd(key, DateTime.Today);
+    }
+
+    private void CancelWatchedDateSelection(Show show)
+    {
+        var key = GetShowKey(show);
+        selectingWatchedDateKeys.Remove(key);
+        watchedDates.Remove(key);
+    }
+
+    private bool IsSelectingWatchedDate(Show show) => selectingWatchedDateKeys.Contains(GetShowKey(show));
+
+    private DateTime? GetWatchedDate(Show show)
+    {
+        var key = GetShowKey(show);
+        return watchedDates.TryGetValue(key, out var date) ? date : DateTime.Today;
+    }
+
+    private void SetWatchedDate(Show show, DateTime? date)
+    {
+        watchedDates[GetShowKey(show)] = date ?? DateTime.Today;
+    }
+
+    private static string GetShowKey(Show show) => $"{show.Title.Trim()}|{show.Network.Trim()}|{show.Season}";
+}

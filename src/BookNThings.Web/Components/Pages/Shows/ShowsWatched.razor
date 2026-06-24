@@ -1,0 +1,150 @@
+@page "/shows-watched"
+@rendermode InteractiveServer
+@inject IShowRepository Repository
+@inject ILogger<ShowsWatched> Logger
+
+<PageTitle>Shows Watched | BookNThings</PageTitle>
+
+<MudStack Spacing="3">
+    <MudText Typo="Typo.h3">Shows Watched</MudText>
+
+    @if (isLoading)
+    {
+        <MudPaper Class="panel loading-panel" Elevation="0">
+            <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+            <MudText>Loading shows watched</MudText>
+        </MudPaper>
+    }
+    else if (!string.IsNullOrWhiteSpace(errorMessage))
+    {
+        <MudPaper Class="panel" Elevation="0">
+            <MudAlert Severity="Severity.Error" Variant="Variant.Outlined">@errorMessage</MudAlert>
+        </MudPaper>
+    }
+    else if (shows.Count == 0)
+    {
+        <MudPaper Class="empty-state" Elevation="0">
+            <MudText Typo="Typo.h5">No shows watched yet</MudText>
+            <MudText Class="muted-text">Add show season entries to track what you have watched this year.</MudText>
+        </MudPaper>
+    }
+    else
+    {
+        <MudPaper Class="panel search-panel" Elevation="0">
+            <MudTextField @bind-Value="searchText"
+                          Placeholder="Search shows watched"
+                          Variant="Variant.Outlined"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search"
+                          Immediate="false" />
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ApplySearch" StartIcon="@Icons.Material.Filled.Search">
+                Search
+            </MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="ClearSearch" StartIcon="@Icons.Material.Filled.Clear">
+                Clear
+            </MudButton>
+        </MudPaper>
+
+        <MudPaper Class="panel table-panel" Elevation="0">
+            <MudTable Items="@ShowsWatchedFiltered" Dense="true" Hover="true" Breakpoint="Breakpoint.Sm" RowsPerPage="25">
+                <HeaderContent>
+                    <MudTh>Watched</MudTh>
+                    <MudTh>Title</MudTh>
+                    <MudTh>Network</MudTh>
+                    <MudTh>Studio</MudTh>
+                    <MudTh>Season</MudTh>
+                    <MudTh>Creator</MudTh>
+                    <MudTh>Genres</MudTh>
+                    <MudTh>Rating</MudTh>
+                    <MudTh></MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Watched">@context.DateWatched!.Value.ToString("yyyy-MM-dd")</MudTd>
+                    <MudTd DataLabel="Title">
+                        <MudText Typo="Typo.subtitle2">@context.Title</MudText>
+                    </MudTd>
+                    <MudTd DataLabel="Network">@context.Network</MudTd>
+                    <MudTd DataLabel="Studio">@context.Studio</MudTd>
+                    <MudTd DataLabel="Season">@context.Season</MudTd>
+                    <MudTd DataLabel="Creator">@context.Creator</MudTd>
+                    <MudTd DataLabel="Genres">@string.Join(", ", context.Genres)</MudTd>
+                    <MudTd DataLabel="Rating">@context.Rating?.ToString("0.0")</MudTd>
+                    <MudTd DataLabel="Actions">
+                        <MudButton Href="@($"shows-watched/{context.Id}")" Variant="Variant.Text" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Filled.Edit">
+                            Edit
+                        </MudButton>
+                    </MudTd>
+                </RowTemplate>
+                <NoRecordsContent>
+                    <MudText Class="muted-text">No shows match your search.</MudText>
+                </NoRecordsContent>
+                <PagerContent>
+                    <MudTablePager PageSizeOptions="new[] { 25, 50, 100 }" />
+                </PagerContent>
+            </MudTable>
+        </MudPaper>
+    }
+</MudStack>
+
+@code {
+    private bool isLoading = true;
+    private string? errorMessage;
+    private string searchText = "";
+    private string appliedSearchText = "";
+    private List<Show> shows = [];
+
+    private IEnumerable<Show> ShowsWatchedFiltered => shows
+        .Where(MatchesSearch)
+        .OrderByDescending(item => item.DateWatched)
+        .ThenBy(item => item.Title)
+        .ThenBy(item => item.Season);
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            shows = (await Repository.GetAllAsync(CancellationToken.None))
+                .Where(show => show.DateWatched.HasValue)
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Loading shows watched failed.");
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void ApplySearch()
+    {
+        appliedSearchText = searchText.Trim();
+    }
+
+    private void ClearSearch()
+    {
+        searchText = "";
+        appliedSearchText = "";
+    }
+
+    private bool MatchesSearch(Show show)
+    {
+        if (string.IsNullOrWhiteSpace(appliedSearchText))
+        {
+            return true;
+        }
+
+        return ContainsSearchText(show.Title)
+            || ContainsSearchText(show.Network)
+            || ContainsSearchText(show.Studio)
+            || ContainsSearchText(show.Creator)
+            || ContainsSearchText(show.Season.ToString())
+            || show.Genres.Any(ContainsSearchText);
+    }
+
+    private bool ContainsSearchText(string? value) =>
+        !string.IsNullOrWhiteSpace(value)
+        && value.Contains(appliedSearchText, StringComparison.OrdinalIgnoreCase);
+}
