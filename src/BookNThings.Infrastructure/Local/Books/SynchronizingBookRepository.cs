@@ -131,15 +131,17 @@ public sealed class SynchronizingBookRepository : IBookRepository, IBookDataSync
     {
         try
         {
+            var mongoBooks = await _mongoRepository.GetAllAsync(cancellationToken);
             if (_jsonStore.FileExists)
             {
                 var localBooks = await _jsonStore.GetAllAsync(cancellationToken);
-                await _mongoRepository.ReplaceAllAsync(localBooks, cancellationToken);
-                await MirrorMongoAsync(cancellationToken);
+                var reconciledBooks = ReconcileById(mongoBooks, localBooks);
+                await _mongoRepository.ReplaceAllAsync(reconciledBooks, cancellationToken);
+                await _jsonStore.ReplaceAllAsync(reconciledBooks, cancellationToken);
                 return;
             }
 
-            await MirrorMongoAsync(cancellationToken);
+            await _jsonStore.ReplaceAllAsync(mongoBooks, cancellationToken);
         }
         catch (Exception ex) when (ShouldFallbackToLocal(ex))
         {
@@ -151,6 +153,20 @@ public sealed class SynchronizingBookRepository : IBookRepository, IBookDataSync
     {
         var books = await _mongoRepository.GetAllAsync(cancellationToken);
         await _jsonStore.ReplaceAllAsync(books, cancellationToken);
+    }
+
+    private static IReadOnlyList<Book> ReconcileById(
+        IReadOnlyList<Book> mongoBooks,
+        IReadOnlyList<Book> localBooks)
+    {
+        var mongoIds = mongoBooks
+            .Where(book => !string.IsNullOrWhiteSpace(book.Id))
+            .Select(book => book.Id)
+            .ToHashSet(StringComparer.Ordinal);
+
+        return mongoBooks
+            .Concat(localBooks.Where(book => !string.IsNullOrWhiteSpace(book.Id) && !mongoIds.Contains(book.Id)))
+            .ToList();
     }
 
     private static bool ShouldFallbackToLocal(Exception exception) =>

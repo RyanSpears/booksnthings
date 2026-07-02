@@ -53,6 +53,68 @@ public class SynchronizingShowRepositoryTests
         }
     }
 
+    [Fact]
+    public async Task AlignAsync_Should_Reconcile_Missing_Shows_Between_Mongo_And_Local_Json()
+    {
+        var jsonStore = CreateStore(out var dataDirectory);
+        try
+        {
+            await jsonStore.UpsertAsync(
+                new Show
+                {
+                    Id = "local-show",
+                    Title = "Local Show",
+                    Network = "Local Network",
+                    Studio = "Local Studio",
+                    Season = 1,
+                    DateWatched = new DateTime(2026, 6, 18),
+                    Rating = 80,
+                    Genres = ["Drama"],
+                    Creator = "Local Creator"
+                },
+                CancellationToken.None);
+
+            IReadOnlyList<Show>? replacedShows = null;
+            var mongoRepository = new Mock<IMongoShowRepository>();
+            mongoRepository.Setup(repository => repository.GetAllAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(
+                [
+                    new Show
+                    {
+                        Id = "mongo-show",
+                        Title = "Mongo Show",
+                        Network = "Mongo Network",
+                        Studio = "Mongo Studio",
+                        Season = 2,
+                        DateWatched = new DateTime(2026, 6, 19),
+                        Rating = 90,
+                        Genres = ["Mystery"],
+                        Creator = "Mongo Creator"
+                    }
+                ]);
+            mongoRepository.Setup(repository => repository.ReplaceAllAsync(It.IsAny<IReadOnlyList<Show>>(), It.IsAny<CancellationToken>()))
+                .Callback<IReadOnlyList<Show>, CancellationToken>((shows, _) => replacedShows = shows)
+                .Returns(Task.CompletedTask);
+
+            var repository = new SynchronizingShowRepository(
+                mongoRepository.Object,
+                jsonStore,
+                NullLogger<SynchronizingShowRepository>.Instance);
+
+            await repository.AlignAsync(CancellationToken.None);
+
+            replacedShows.Should().NotBeNull();
+            replacedShows!.Select(show => show.Id).Should().BeEquivalentTo("local-show", "mongo-show");
+
+            var localShows = await jsonStore.GetAllAsync(CancellationToken.None);
+            localShows.Select(show => show.Id).Should().BeEquivalentTo("local-show", "mongo-show");
+        }
+        finally
+        {
+            Directory.Delete(dataDirectory, true);
+        }
+    }
+
     private static JsonShowStore CreateStore(out string dataDirectory)
     {
         dataDirectory = Path.Combine(

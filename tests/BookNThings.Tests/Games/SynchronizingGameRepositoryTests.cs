@@ -53,6 +53,68 @@ public class SynchronizingGameRepositoryTests
         }
     }
 
+    [Fact]
+    public async Task AlignAsync_Should_Reconcile_Missing_Games_Between_Mongo_And_Local_Json()
+    {
+        var jsonStore = CreateStore(out var dataDirectory);
+        try
+        {
+            await jsonStore.UpsertAsync(
+                new Game
+                {
+                    Id = "local-game",
+                    Title = "Local Game",
+                    Publisher = "Local Publisher",
+                    Studio = "Local Studio",
+                    ReleasedDate = new DateTime(2026, 1, 1),
+                    DatePlayed = new DateTime(2026, 6, 18),
+                    Rating = 80,
+                    Genres = ["Puzzle"],
+                    Developer = "Local Developer"
+                },
+                CancellationToken.None);
+
+            IReadOnlyList<Game>? replacedGames = null;
+            var mongoRepository = new Mock<IMongoGameRepository>();
+            mongoRepository.Setup(repository => repository.GetAllAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(
+                [
+                    new Game
+                    {
+                        Id = "mongo-game",
+                        Title = "Mongo Game",
+                        Publisher = "Mongo Publisher",
+                        Studio = "Mongo Studio",
+                        ReleasedDate = new DateTime(2026, 1, 2),
+                        DatePlayed = new DateTime(2026, 6, 19),
+                        Rating = 90,
+                        Genres = ["RPG"],
+                        Developer = "Mongo Developer"
+                    }
+                ]);
+            mongoRepository.Setup(repository => repository.ReplaceAllAsync(It.IsAny<IReadOnlyList<Game>>(), It.IsAny<CancellationToken>()))
+                .Callback<IReadOnlyList<Game>, CancellationToken>((games, _) => replacedGames = games)
+                .Returns(Task.CompletedTask);
+
+            var repository = new SynchronizingGameRepository(
+                mongoRepository.Object,
+                jsonStore,
+                NullLogger<SynchronizingGameRepository>.Instance);
+
+            await repository.AlignAsync(CancellationToken.None);
+
+            replacedGames.Should().NotBeNull();
+            replacedGames!.Select(game => game.Id).Should().BeEquivalentTo("local-game", "mongo-game");
+
+            var localGames = await jsonStore.GetAllAsync(CancellationToken.None);
+            localGames.Select(game => game.Id).Should().BeEquivalentTo("local-game", "mongo-game");
+        }
+        finally
+        {
+            Directory.Delete(dataDirectory, true);
+        }
+    }
+
     private static JsonGameStore CreateStore(out string dataDirectory)
     {
         dataDirectory = Path.Combine(

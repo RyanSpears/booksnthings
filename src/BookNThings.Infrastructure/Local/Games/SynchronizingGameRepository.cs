@@ -131,15 +131,17 @@ public sealed class SynchronizingGameRepository : IGameRepository, IGameDataSync
     {
         try
         {
+            var mongoGames = await _mongoRepository.GetAllAsync(cancellationToken);
             if (_jsonStore.FileExists)
             {
                 var localGames = await _jsonStore.GetAllAsync(cancellationToken);
-                await _mongoRepository.ReplaceAllAsync(localGames, cancellationToken);
-                await MirrorMongoAsync(cancellationToken);
+                var reconciledGames = ReconcileById(mongoGames, localGames);
+                await _mongoRepository.ReplaceAllAsync(reconciledGames, cancellationToken);
+                await _jsonStore.ReplaceAllAsync(reconciledGames, cancellationToken);
                 return;
             }
 
-            await MirrorMongoAsync(cancellationToken);
+            await _jsonStore.ReplaceAllAsync(mongoGames, cancellationToken);
         }
         catch (Exception ex) when (ShouldFallbackToLocal(ex))
         {
@@ -151,6 +153,20 @@ public sealed class SynchronizingGameRepository : IGameRepository, IGameDataSync
     {
         var games = await _mongoRepository.GetAllAsync(cancellationToken);
         await _jsonStore.ReplaceAllAsync(games, cancellationToken);
+    }
+
+    private static IReadOnlyList<Game> ReconcileById(
+        IReadOnlyList<Game> mongoGames,
+        IReadOnlyList<Game> localGames)
+    {
+        var mongoIds = mongoGames
+            .Where(game => !string.IsNullOrWhiteSpace(game.Id))
+            .Select(game => game.Id)
+            .ToHashSet(StringComparer.Ordinal);
+
+        return mongoGames
+            .Concat(localGames.Where(game => !string.IsNullOrWhiteSpace(game.Id) && !mongoIds.Contains(game.Id)))
+            .ToList();
     }
 
     private static bool ShouldFallbackToLocal(Exception exception) =>

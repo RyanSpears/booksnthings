@@ -1,25 +1,33 @@
 [
   {
     "id": "66a1d7f9d3a4b0a1c2d3e401",
-    "title": "Rick & Morty",
+    "title": "Rick \u0026 Morty",
     "network": "Adult Swim",
     "studio": "Williams Street, Harmonious Claptrap",
     "season": 1,
     "dateWatched": "2026-06-24T00:00:00Z",
     "rating": 97,
-    "genres": ["Adult Animation", "Science Fiction", "Comedy"],
+    "genres": [
+      "Adult Animation",
+      "Science Fiction",
+      "Comedy"
+    ],
     "creator": "Justin Roiland, Dan Harmon",
     "createdAt": "2026-06-24T00:00:00Z"
   },
   {
     "id": "66a1d7f9d3a4b0a1c2d3e402",
     "title": "The Mandalorian",
-    "network": "Disney+",
+    "network": "Disney\u002B",
     "studio": "Lucasfilm",
     "season": 1,
     "dateWatched": "2026-06-20T00:00:00Z",
     "rating": 93,
-    "genres": ["Action-Adventure", "Space Western", "Science Fiction"],
+    "genres": [
+      "Action-Adventure",
+      "Space Western",
+      "Science Fiction"
+    ],
     "creator": "Jon Favreau",
     "createdAt": "2026-06-20T00:00:00Z"
   },
@@ -31,19 +39,27 @@
     "season": 2,
     "dateWatched": "2026-06-16T00:00:00Z",
     "rating": 100,
-    "genres": ["Documentary", "Crime", "True Crime"],
+    "genres": [
+      "Documentary",
+      "Crime",
+      "True Crime"
+    ],
     "creator": "Dick Wolf",
     "createdAt": "2026-06-16T00:00:00Z"
   },
   {
     "id": "66a1d7f9d3a4b0a1c2d3e404",
     "title": "Pantheon",
-    "network": "AMC+",
+    "network": "AMC\u002B",
     "studio": "Titmouse, AMC Studios",
     "season": 1,
     "dateWatched": "2026-06-12T00:00:00Z",
     "rating": 100,
-    "genres": ["Science Fiction", "Drama", "Animation"],
+    "genres": [
+      "Science Fiction",
+      "Drama",
+      "Animation"
+    ],
     "creator": "Craig Silverstein",
     "createdAt": "2026-06-12T00:00:00Z"
   },
@@ -55,7 +71,12 @@
     "season": 2,
     "dateWatched": "2026-06-08T00:00:00Z",
     "rating": 96,
-    "genres": ["Action", "Drama", "Post-Apocalyptic", "Science Fiction"],
+    "genres": [
+      "Action",
+      "Drama",
+      "Post-Apocalyptic",
+      "Science Fiction"
+    ],
     "creator": "Graham Wagner, Geneva Robertson-Dworet",
     "createdAt": "2026-06-08T00:00:00Z"
   },
@@ -67,7 +88,11 @@
     "season": 4,
     "dateWatched": "2026-06-04T00:00:00Z",
     "rating": 100,
-    "genres": ["Comedy", "Police Procedural", "Sitcom"],
+    "genres": [
+      "Comedy",
+      "Police Procedural",
+      "Sitcom"
+    ],
     "creator": "Michael Schur, Dan Goor",
     "createdAt": "2026-06-04T00:00:00Z"
   },
@@ -79,7 +104,11 @@
     "season": 1,
     "dateWatched": "2026-05-31T00:00:00Z",
     "rating": 100,
-    "genres": ["Documentary", "Crime", "True Crime"],
+    "genres": [
+      "Documentary",
+      "Crime",
+      "True Crime"
+    ],
     "creator": "Dick Wolf",
     "createdAt": "2026-05-31T00:00:00Z"
   },
@@ -91,43 +120,61 @@
     "season": 1,
     "dateWatched": "2026-05-27T00:00:00Z",
     "rating": 93,
-    "genres": ["Action", "Drama", "Post-Apocalyptic", "Science Fiction"],
+    "genres": [
+      "Action",
+      "Drama",
+      "Post-Apocalyptic",
+      "Science Fiction"
+    ],
     "creator": "Graham Wagner, Geneva Robertson-Dworet",
     "createdAt": "2026-05-27T00:00:00Z"
   },
   {
     "id": "66a1d7f9d3a4b0a1c2d3e409",
-    "title": "Rick & Morty",
+    "title": "Rick \u0026 Morty",
     "network": "Adult Swim",
     "studio": "Williams Street, Harmonious Claptrap",
     "season": 8,
     "dateWatched": "2026-05-23T00:00:00Z",
     "rating": 91,
-    "genres": ["Adult Animation", "Science Fiction", "Comedy"],
+    "genres": [
+      "Adult Animation",
+      "Science Fiction",
+      "Comedy"
+    ],
     "creator": "Justin Roiland, Dan Harmon",
     "createdAt": "2026-05-23T00:00:00Z"
   },
   {
     "id": "66a1d7f9d3a4b0a1c2d3e40a",
     "title": "Andor",
-    "network": "Disney+",
+    "network": "Disney\u002B",
     "studio": "Lucasfilm",
     "season": 2,
     "dateWatched": "2026-05-19T00:00:00Z",
     "rating": 97,
-    "genres": ["Drama", "Political Thriller", "Spy Thriller", "Science Fiction"],
+    "genres": [
+      "Drama",
+      "Political Thriller",
+      "Spy Thriller",
+      "Science Fiction"
+    ],
     "creator": "Tony Gilroy",
     "createdAt": "2026-05-19T00:00:00Z"
   },
   {
     "id": "66a1d7f9d3a4b0a1c2d3e40b",
-    "title": "Rick & Morty",
+    "title": "Rick \u0026 Morty",
     "network": "Adult Swim",
     "studio": "Williams Street, Harmonious Claptrap",
     "season": 7,
     "dateWatched": "2026-05-15T00:00:00Z",
     "rating": 77,
-    "genres": ["Adult Animation", "Science Fiction", "Comedy"],
+    "genres": [
+      "Adult Animation",
+      "Science Fiction",
+      "Comedy"
+    ],
     "creator": "Justin Roiland, Dan Harmon",
     "createdAt": "2026-05-15T00:00:00Z"
   },
@@ -139,56 +186,93 @@
     "season": 1,
     "dateWatched": "2026-05-11T00:00:00Z",
     "rating": 100,
-    "genres": ["Action", "Adventure", "Comedy Drama", "Fantasy"],
+    "genres": [
+      "Action",
+      "Adventure",
+      "Comedy Drama",
+      "Fantasy"
+    ],
     "creator": "Critical Role Productions",
     "createdAt": "2026-05-11T00:00:00Z"
   },
   {
-    "id": "66a1d7f9d3a4b0a1c2d3e410",
-    "title": "Star Wars Visions",
-    "network": "Disney+",
-    "studio": "Lucasfilm",
-    "season": 3,
-    "dateWatched": null,
-    "rating": 100,
-    "genres": ["Action-Adventure", "Anthology", "Science Fiction", "Space Opera"],
-    "creator": "Lucasfilm",
-    "createdAt": "2026-06-24T00:00:00Z"
-  },
-  {
-    "id": "66a1d7f9d3a4b0a1c2d3e411",
-    "title": "Star Wars Maul",
-    "network": "Disney+",
-    "studio": "Lucasfilm Animation",
-    "season": 1,
-    "dateWatched": null,
-    "rating": 98,
-    "genres": ["Action-Adventure", "Science Fiction"],
-    "creator": "Dave Filoni",
-    "createdAt": "2026-06-24T00:00:00Z"
-  },
-  {
     "id": "66a1d7f9d3a4b0a1c2d3e412",
-    "title": "Rick & Morty",
+    "title": "Rick \u0026 Morty",
     "network": "Adult Swim",
     "studio": "Williams Street, Harmonious Claptrap",
     "season": 2,
     "dateWatched": null,
     "rating": 91,
-    "genres": ["Adult Animation", "Science Fiction", "Comedy"],
+    "genres": [
+      "Adult Animation",
+      "Science Fiction",
+      "Comedy"
+    ],
     "creator": "Justin Roiland, Dan Harmon",
     "createdAt": "2026-06-24T00:00:00Z"
   },
   {
     "id": "66a1d7f9d3a4b0a1c2d3e413",
     "title": "Silo",
-    "network": "Apple TV+",
-    "studio": "Mímir Films, Nemo Films, AMC Studios, Apple Studios",
+    "network": "Apple TV\u002B",
+    "studio": "M\u00EDmir Films, Nemo Films, AMC Studios, Apple Studios",
     "season": 1,
     "dateWatched": null,
     "rating": 88,
-    "genres": ["Drama", "Dystopian", "Science Fiction"],
+    "genres": [
+      "Drama",
+      "Dystopian",
+      "Science Fiction"
+    ],
     "creator": "Graham Yost",
     "createdAt": "2026-06-24T00:00:00Z"
+  },
+  {
+    "id": "66a1d7f9d3a4b0a1c2d3e411",
+    "title": "Star Wars Maul",
+    "network": "Disney\u002B",
+    "studio": "Lucasfilm Animation",
+    "season": 1,
+    "dateWatched": null,
+    "rating": 98,
+    "genres": [
+      "Action-Adventure",
+      "Science Fiction"
+    ],
+    "creator": "Dave Filoni",
+    "createdAt": "2026-06-24T00:00:00Z"
+  },
+  {
+    "id": "66a1d7f9d3a4b0a1c2d3e410",
+    "title": "Star Wars Visions",
+    "network": "Disney\u002B",
+    "studio": "Lucasfilm",
+    "season": 3,
+    "dateWatched": null,
+    "rating": 100,
+    "genres": [
+      "Action-Adventure",
+      "Anthology",
+      "Science Fiction",
+      "Space Opera"
+    ],
+    "creator": "Lucasfilm",
+    "createdAt": "2026-06-24T00:00:00Z"
+  },
+  {
+    "id": "6a45e744f448bc45f3cf6374",
+    "title": "The Book of Boba Fett",
+    "network": "Disney\u002B",
+    "studio": "Lucasfilm",
+    "season": 1,
+    "dateWatched": null,
+    "rating": 8.1,
+    "genres": [
+      "Action",
+      "Adventure",
+      "Science Fiction"
+    ],
+    "creator": "Jon Favreau",
+    "createdAt": "2026-07-02T04:21:15.281Z"
   }
 ]

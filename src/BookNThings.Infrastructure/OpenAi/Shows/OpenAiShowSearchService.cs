@@ -86,7 +86,7 @@ public sealed class OpenAiShowSearchService(
                     {
                         type = "object",
                         additionalProperties = false,
-                        required = new[] { "title", "network", "studio", "season", "genres" },
+                        required = new[] { "title", "network", "studio", "season", "rating", "genres", "creator" },
                         properties = new
                         {
                             title = new { type = "string" },

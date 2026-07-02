@@ -116,7 +116,7 @@
     "title": "Pragmata",
     "publisher": "Capcom",
     "studio": "Capcom",
-    "releasedDate": "2023-10-17T00:00:00",
+    "releasedDate": "2023-10-16T13:30:00Z",
     "datePlayed": null,
     "rating": 66,
     "genres": [
@@ -125,6 +125,22 @@
       "Sci-Fi"
     ],
     "developer": "Capcom",
-    "createdAt": "2026-06-24T21:32:22.322872Z"
+    "createdAt": "2026-06-24T21:32:22.322Z"
+  },
+  {
+    "id": "6a40786d4127557bec7cf51a",
+    "title": "State of Decay",
+    "publisher": "Microsoft Studios",
+    "studio": "Undead Labs",
+    "releasedDate": "2013-06-04T14:30:00Z",
+    "datePlayed": null,
+    "rating": 75,
+    "genres": [
+      "Survival",
+      "Action",
+      "Open World"
+    ],
+    "developer": "Undead Labs",
+    "createdAt": "2026-06-28T01:27:06.411Z"
   }
 ]

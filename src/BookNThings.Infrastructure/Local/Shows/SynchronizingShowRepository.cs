@@ -131,15 +131,17 @@ public sealed class SynchronizingShowRepository : IShowRepository, IShowDataSync
     {
         try
         {
+            var mongoShows = await _mongoRepository.GetAllAsync(cancellationToken);
             if (_jsonStore.FileExists)
             {
                 var localShows = await _jsonStore.GetAllAsync(cancellationToken);
-                await _mongoRepository.ReplaceAllAsync(localShows, cancellationToken);
-                await MirrorMongoAsync(cancellationToken);
+                var reconciledShows = ReconcileById(mongoShows, localShows);
+                await _mongoRepository.ReplaceAllAsync(reconciledShows, cancellationToken);
+                await _jsonStore.ReplaceAllAsync(reconciledShows, cancellationToken);
                 return;
             }
 
-            await MirrorMongoAsync(cancellationToken);
+            await _jsonStore.ReplaceAllAsync(mongoShows, cancellationToken);
         }
         catch (Exception ex) when (ShouldFallbackToLocal(ex))
         {
@@ -151,6 +153,20 @@ public sealed class SynchronizingShowRepository : IShowRepository, IShowDataSync
     {
         var shows = await _mongoRepository.GetAllAsync(cancellationToken);
         await _jsonStore.ReplaceAllAsync(shows, cancellationToken);
+    }
+
+    private static IReadOnlyList<Show> ReconcileById(
+        IReadOnlyList<Show> mongoShows,
+        IReadOnlyList<Show> localShows)
+    {
+        var mongoIds = mongoShows
+            .Where(show => !string.IsNullOrWhiteSpace(show.Id))
+            .Select(show => show.Id)
+            .ToHashSet(StringComparer.Ordinal);
+
+        return mongoShows
+            .Concat(localShows.Where(show => !string.IsNullOrWhiteSpace(show.Id) && !mongoIds.Contains(show.Id)))
+            .ToList();
     }
 
     private static bool ShouldFallbackToLocal(Exception exception) =>
