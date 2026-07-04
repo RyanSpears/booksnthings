@@ -1,5 +1,37 @@
 [
   {
+    "id": "66a1d7f9d3a4b0a1c2d3e412",
+    "title": "Rick \u0026 Morty",
+    "network": "Adult Swim",
+    "studio": "Williams Street, Harmonious Claptrap",
+    "season": 2,
+    "dateWatched": "2026-07-04T00:00:00+09:30",
+    "rating": 91,
+    "genres": [
+      "Adult Animation",
+      "Science Fiction",
+      "Comedy"
+    ],
+    "creator": "Justin Roiland, Dan Harmon",
+    "createdAt": "2026-06-24T00:00:00Z"
+  },
+  {
+    "id": "66a1d7f9d3a4b0a1c2d3e413",
+    "title": "Silo",
+    "network": "Apple TV\u002B",
+    "studio": "M\u00EDmir Films, Nemo Films, AMC Studios, Apple Studios",
+    "season": 1,
+    "dateWatched": "2026-07-04T00:00:00+09:30",
+    "rating": 88,
+    "genres": [
+      "Drama",
+      "Dystopian",
+      "Science Fiction"
+    ],
+    "creator": "Graham Yost",
+    "createdAt": "2026-06-24T00:00:00Z"
+  },
+  {
     "id": "66a1d7f9d3a4b0a1c2d3e401",
     "title": "Rick \u0026 Morty",
     "network": "Adult Swim",
@@ -194,38 +226,6 @@
     ],
     "creator": "Critical Role Productions",
     "createdAt": "2026-05-11T00:00:00Z"
-  },
-  {
-    "id": "66a1d7f9d3a4b0a1c2d3e412",
-    "title": "Rick \u0026 Morty",
-    "network": "Adult Swim",
-    "studio": "Williams Street, Harmonious Claptrap",
-    "season": 2,
-    "dateWatched": null,
-    "rating": 91,
-    "genres": [
-      "Adult Animation",
-      "Science Fiction",
-      "Comedy"
-    ],
-    "creator": "Justin Roiland, Dan Harmon",
-    "createdAt": "2026-06-24T00:00:00Z"
-  },
-  {
-    "id": "66a1d7f9d3a4b0a1c2d3e413",
-    "title": "Silo",
-    "network": "Apple TV\u002B",
-    "studio": "M\u00EDmir Films, Nemo Films, AMC Studios, Apple Studios",
-    "season": 1,
-    "dateWatched": null,
-    "rating": 88,
-    "genres": [
-      "Drama",
-      "Dystopian",
-      "Science Fiction"
-    ],
-    "creator": "Graham Yost",
-    "createdAt": "2026-06-24T00:00:00Z"
   },
   {
     "id": "66a1d7f9d3a4b0a1c2d3e411",
