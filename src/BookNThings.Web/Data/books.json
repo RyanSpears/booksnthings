@@ -1,5 +1,18 @@
 [
   {
+    "id": "6a4b37a42e751d6eea2cbc56",
+    "title": "A History of Japan",
+    "description": "A comprehensive overview of Japan\u0027s history, covering its culture, politics, and society from ancient times to the modern era.",
+    "pages": 384,
+    "datePublished": "2004-10-20T14:30:00Z",
+    "dateRead": "2026-07-06T14:30:00Z",
+    "genres": [
+      "History",
+      "Asian Studies"
+    ],
+    "author": "Richard Mason"
+  },
+  {
     "id": "6a33262a684ca84533d15b7b",
     "title": "Cities of the Plain",
     "description": "The third novel in Cormac McCarthy\u0027s Border Trilogy, exploring the lives of cowboys John Grady Cole and Billy Parham and their journey through the shifting landscapes and cultures of the American Southwest and Mexico.",
@@ -3881,16 +3894,30 @@
     "author": "Stephen E. Ambrose"
   },
   {
-    "id": "6a46d9a7f201a740cacc6a21",
-    "title": "A History of Japan",
-    "description": "This book provides a comprehensive overview of Japanese history, covering political, economic, and cultural developments from ancient times to the modern era. The authors, Richard Mason and Howard Caiger, offer insights into the unique aspects of Japan\u0027s past and its impact on contemporary society.",
-    "pages": 350,
-    "datePublished": "1997-08-15T00:00:00",
+    "id": "6a51e18202384cbfd37e3e68",
+    "title": "Super Nintendo: How One Japanese Company Helped the World Have Fun",
+    "description": "This book explores the history and impact of the Super Nintendo Entertainment System (SNES), detailing how Nintendo, a Japanese company, revolutionized the gaming industry and influenced global entertainment culture.",
+    "pages": 160,
+    "datePublished": "2023-08-14T14:30:00Z",
     "dateRead": null,
     "genres": [
       "History",
-      "Asian Studies"
+      "Video Games",
+      "Technology"
     ],
-    "author": "Richard Mason and Howard Caiger"
+    "author": "Keza MacDonald"
+  },
+  {
+    "id": "6a4cd01ea430cd3472bff3cf",
+    "title": "The Stone of Farewell",
+    "description": "The second book in the Sword of Shannara series by Terry Brooks, continuing the epic fantasy saga as the heroes battle dark forces threatening the Four Lands.",
+    "pages": 562,
+    "datePublished": "1990-07-31T14:30:00Z",
+    "dateRead": null,
+    "genres": [
+      "Fantasy",
+      "Epic Fantasy"
+    ],
+    "author": "Terry Brooks"
   }
 ]

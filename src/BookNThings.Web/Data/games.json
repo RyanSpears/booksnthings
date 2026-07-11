@@ -128,19 +128,19 @@
     "createdAt": "2026-06-24T21:32:22.322Z"
   },
   {
-    "id": "6a40786d4127557bec7cf51a",
-    "title": "State of Decay",
-    "publisher": "Microsoft Studios",
+    "id": "6a51e19502384cbfd37e3e69",
+    "title": "State of Decay 2",
+    "publisher": "Xbox Game Studios",
     "studio": "Undead Labs",
-    "releasedDate": "2013-06-04T14:30:00Z",
+    "releasedDate": "2018-05-21T14:30:00Z",
     "datePlayed": null,
-    "rating": 75,
+    "rating": 65,
     "genres": [
-      "Survival",
       "Action",
+      "Survival",
       "Open World"
     ],
     "developer": "Undead Labs",
-    "createdAt": "2026-06-28T01:27:06.411Z"
+    "createdAt": "2026-07-11T06:24:17.871Z"
   }
 ]
