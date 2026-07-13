@@ -12,6 +12,7 @@ public class JsonShowStoreTests
     [Fact]
     public async Task JsonShowStore_Should_Upsert_Update_And_Delete_Shows()
     {
+        // Arrange
         var store = CreateStore(out var dataDirectory);
         try
         {
@@ -27,16 +28,22 @@ public class JsonShowStoreTests
                 Creator = "Dan Erickson"
             };
 
+            // Act
             await store.UpsertAsync(show, CancellationToken.None);
             await store.UpdateWatchedDateAsync(show.Id, new DateTime(2026, 6, 19), CancellationToken.None);
 
             var updated = await store.GetByIdAsync(show.Id, CancellationToken.None);
+
+            // Assert
             updated.Should().NotBeNull();
             updated!.DateWatched.Should().Be(new DateTime(2026, 6, 19));
 
+            // Act
             await store.DeleteAsync(show.Id, CancellationToken.None);
 
             var shows = await store.GetAllAsync(CancellationToken.None);
+
+            // Assert
             shows.Should().BeEmpty();
         }
         finally
@@ -48,6 +55,7 @@ public class JsonShowStoreTests
     [Fact]
     public async Task JsonShowStore_Should_Save_Currently_Watching_Show_Without_Watched_Date()
     {
+        // Arrange
         var store = CreateStore(out var dataDirectory);
         try
         {
@@ -63,9 +71,12 @@ public class JsonShowStoreTests
                 Creator = "Tony Gilroy"
             };
 
+            // Act
             await store.UpsertAsync(show, CancellationToken.None);
 
             var saved = await store.GetByIdAsync(show.Id, CancellationToken.None);
+
+            // Assert
             saved.Should().NotBeNull();
             saved!.DateWatched.Should().BeNull();
         }
@@ -78,9 +89,11 @@ public class JsonShowStoreTests
     [Fact]
     public async Task JsonShowStore_Should_Replace_All_Shows_With_The_Current_State()
     {
+        // Arrange
         var store = CreateStore(out var dataDirectory);
         try
         {
+            // Act
             await store.ReplaceAllAsync(
                 [
                     new()
@@ -110,6 +123,7 @@ public class JsonShowStoreTests
 
             var shows = await store.GetAllAsync(CancellationToken.None);
 
+            // Assert
             shows.Should().ContainSingle();
             shows[0].Id.Should().Be("show-1");
             shows[0].Season.Should().Be(1);

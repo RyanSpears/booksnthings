@@ -10,6 +10,7 @@ public class RepositoryContractTests
     [Fact]
     public async Task Repository_Should_Save_And_Return_Books_Through_Contract()
     {
+        // Arrange
         var saved = new List<Book>();
         var repository = new Mock<IBookRepository>();
         repository.Setup(r => r.SaveAsync(It.IsAny<Book>(), It.IsAny<CancellationToken>()))
@@ -26,9 +27,11 @@ public class RepositoryContractTests
             DateRead = new DateTime(2026, 5, 19)
         };
 
+        // Act
         await repository.Object.SaveAsync(book, CancellationToken.None);
         var results = await repository.Object.GetAllAsync(CancellationToken.None);
 
+        // Assert
         var result = results.Should().ContainSingle().Which;
         result.Author.Should().Be("Octavia E. Butler");
         result.DateRead.Should().Be(new DateTime(2026, 5, 19));
@@ -37,6 +40,7 @@ public class RepositoryContractTests
     [Fact]
     public async Task Repository_Should_Save_Currently_Reading_Book_Without_Read_Date()
     {
+        // Arrange
         var saved = new List<Book>();
         var repository = new Mock<IBookRepository>();
         repository.Setup(r => r.SaveAsync(It.IsAny<Book>(), It.IsAny<CancellationToken>()))
@@ -52,15 +56,18 @@ public class RepositoryContractTests
             DatePublished = new DateTime(1993, 10, 1)
         };
 
+        // Act
         await repository.Object.SaveAsync(book, CancellationToken.None);
         var results = await repository.Object.GetAllAsync(CancellationToken.None);
 
+        // Assert
         results.Should().ContainSingle().Which.DateRead.Should().BeNull();
     }
 
     [Fact]
     public async Task Repository_Should_Update_And_Delete_Book_Read_Through_Contract()
     {
+        // Arrange
         var saved = new List<Book>
         {
             new()
@@ -83,14 +90,18 @@ public class RepositoryContractTests
             .Callback<string, CancellationToken>((id, _) => saved.RemoveAll(book => book.Id == id))
             .Returns(Task.CompletedTask);
 
+        // Act
         await repository.Object.UpdateReadDateAsync("book-read-1", new DateTime(2026, 5, 20), CancellationToken.None);
         var updated = await repository.Object.GetByIdAsync("book-read-1", CancellationToken.None);
 
+        // Assert
         updated.Should().NotBeNull();
         updated!.DateRead.Should().Be(new DateTime(2026, 5, 20));
 
+        // Act
         await repository.Object.DeleteAsync("book-read-1", CancellationToken.None);
 
+        // Assert
         saved.Should().BeEmpty();
     }
 }

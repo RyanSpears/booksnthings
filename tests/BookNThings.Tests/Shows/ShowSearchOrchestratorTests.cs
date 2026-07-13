@@ -12,18 +12,22 @@ public class ShowSearchOrchestratorTests
     [Fact]
     public async Task SearchAsync_Should_Reject_Empty_Query()
     {
+        // Arrange
         var service = new Mock<IShowSearchService>();
         var logger = Mock.Of<ILogger<ShowSearchOrchestrator>>();
         var orchestrator = new ShowSearchOrchestrator(service.Object, logger);
 
+        // Act
         var act = () => orchestrator.SearchAsync(" ", CancellationToken.None);
 
+        // Assert
         await act.Should().ThrowAsync<ArgumentException>();
     }
 
     [Fact]
     public async Task SearchAsync_Should_Trim_Query_And_Return_Results()
     {
+        // Arrange
         var expected = new[]
         {
             new Show
@@ -41,8 +45,10 @@ public class ShowSearchOrchestratorTests
 
         var orchestrator = new ShowSearchOrchestrator(service.Object, Mock.Of<ILogger<ShowSearchOrchestrator>>());
 
+        // Act
         var results = await orchestrator.SearchAsync(" Severance ", CancellationToken.None);
 
+        // Assert
         results.Should().ContainSingle().Which.Title.Should().Be("Severance");
     }
 }

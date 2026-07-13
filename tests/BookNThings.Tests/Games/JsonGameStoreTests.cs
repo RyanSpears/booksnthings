@@ -12,6 +12,7 @@ public class JsonGameStoreTests
     [Fact]
     public async Task JsonGameStore_Should_Upsert_Update_And_Delete_Games()
     {
+        // Arrange
         var store = CreateStore(out var dataDirectory);
         try
         {
@@ -27,16 +28,22 @@ public class JsonGameStoreTests
                 Developer = "Larian Studios"
             };
 
+            // Act
             await store.UpsertAsync(game, CancellationToken.None);
             await store.UpdatePlayedDateAsync(game.Id, new DateTime(2026, 6, 19), CancellationToken.None);
 
             var updated = await store.GetByIdAsync(game.Id, CancellationToken.None);
+
+            // Assert
             updated.Should().NotBeNull();
             updated!.DatePlayed.Should().Be(new DateTime(2026, 6, 19));
 
+            // Act
             await store.DeleteAsync(game.Id, CancellationToken.None);
 
             var games = await store.GetAllAsync(CancellationToken.None);
+
+            // Assert
             games.Should().BeEmpty();
         }
         finally
@@ -48,6 +55,7 @@ public class JsonGameStoreTests
     [Fact]
     public async Task JsonGameStore_Should_Save_Currently_Playing_Game_Without_Played_Date()
     {
+        // Arrange
         var store = CreateStore(out var dataDirectory);
         try
         {
@@ -63,9 +71,12 @@ public class JsonGameStoreTests
                 Developer = "Supergiant Games"
             };
 
+            // Act
             await store.UpsertAsync(game, CancellationToken.None);
 
             var saved = await store.GetByIdAsync(game.Id, CancellationToken.None);
+
+            // Assert
             saved.Should().NotBeNull();
             saved!.DatePlayed.Should().BeNull();
         }
@@ -78,9 +89,11 @@ public class JsonGameStoreTests
     [Fact]
     public async Task JsonGameStore_Should_Replace_All_Games_With_The_Current_State()
     {
+        // Arrange
         var store = CreateStore(out var dataDirectory);
         try
         {
+            // Act
             await store.ReplaceAllAsync(
                 [
                     new()
@@ -97,6 +110,7 @@ public class JsonGameStoreTests
                 ],
                 CancellationToken.None);
 
+            // Act
             await store.ReplaceAllAsync(
                 [
                     new()
@@ -115,6 +129,7 @@ public class JsonGameStoreTests
 
             var games = await store.GetAllAsync(CancellationToken.None);
 
+            // Assert
             games.Should().ContainSingle();
             games[0].Id.Should().Be("game-2");
         }

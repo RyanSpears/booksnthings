@@ -14,6 +14,7 @@ public class SynchronizingShowRepositoryTests
     [Fact]
     public async Task GetAllAsync_Should_Fallback_To_Local_Json_When_Mongo_Times_Out()
     {
+        // Arrange
         var jsonStore = CreateStore(out var dataDirectory);
         try
         {
@@ -41,8 +42,10 @@ public class SynchronizingShowRepositoryTests
                 jsonStore,
                 NullLogger<SynchronizingShowRepository>.Instance);
 
+            // Act
             var shows = await repository.GetAllAsync(CancellationToken.None);
 
+            // Assert
             shows.Should().ContainSingle();
             shows[0].Id.Should().Be("show-1");
             shows[0].Title.Should().Be("Severance");
@@ -56,6 +59,7 @@ public class SynchronizingShowRepositoryTests
     [Fact]
     public async Task AlignAsync_Should_Reconcile_Missing_Shows_Between_Mongo_And_Local_Json()
     {
+        // Arrange
         var jsonStore = CreateStore(out var dataDirectory);
         try
         {
@@ -101,8 +105,10 @@ public class SynchronizingShowRepositoryTests
                 jsonStore,
                 NullLogger<SynchronizingShowRepository>.Instance);
 
+            // Act
             await repository.AlignAsync(CancellationToken.None);
 
+            // Assert
             replacedShows.Should().NotBeNull();
             replacedShows!.Select(show => show.Id).Should().BeEquivalentTo("local-show", "mongo-show");
 

@@ -8,30 +8,45 @@ public class BookTests
     [Fact]
     public void Should_Create_Book()
     {
+        // Arrange
+        const string title = "Dune";
+        const string author = "Frank Herbert";
+        const int pages = 412;
+        var dateRead = new DateTime(2026, 5, 19);
+
+        // Act
         var book = new Book
         {
-            Title = "Dune",
-            Author = "Frank Herbert",
-            Pages = 412,
-            DateRead = new DateTime(2026, 5, 19)
+            Title = title,
+            Author = author,
+            Pages = pages,
+            DateRead = dateRead
         };
 
-        book.Title.Should().Be("Dune");
-        book.Author.Should().Be("Frank Herbert");
-        book.Pages.Should().Be(412);
-        book.DateRead.Should().Be(new DateTime(2026, 5, 19));
+        // Assert
+        book.Title.Should().Be(title);
+        book.Author.Should().Be(author);
+        book.Pages.Should().Be(pages);
+        book.DateRead.Should().Be(dateRead);
     }
 
     [Fact]
     public void Should_Create_Currently_Reading_Book()
     {
+        // Arrange
+        const string title = "Dune";
+        const string author = "Frank Herbert";
+        const int pages = 412;
+
+        // Act
         var book = new Book
         {
-            Title = "Dune",
-            Author = "Frank Herbert",
-            Pages = 412
+            Title = title,
+            Author = author,
+            Pages = pages
         };
 
+        // Assert
         book.DateRead.Should().BeNull();
     }
 }

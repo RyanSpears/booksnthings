@@ -10,6 +10,7 @@ public class ShowRepositoryContractTests
     [Fact]
     public async Task Repository_Should_Save_And_Return_Shows_Through_Contract()
     {
+        // Arrange
         var saved = new List<Show>();
         var repository = new Mock<IShowRepository>();
         repository.Setup(r => r.SaveAsync(It.IsAny<Show>(), It.IsAny<CancellationToken>()))
@@ -27,9 +28,11 @@ public class ShowRepositoryContractTests
             DateWatched = new DateTime(2026, 6, 24)
         };
 
+        // Act
         await repository.Object.SaveAsync(show, CancellationToken.None);
         var results = await repository.Object.GetAllAsync(CancellationToken.None);
 
+        // Assert
         var result = results.Should().ContainSingle().Which;
         result.Network.Should().Be("Apple TV+");
         result.Season.Should().Be(2);
@@ -39,6 +42,7 @@ public class ShowRepositoryContractTests
     [Fact]
     public async Task Repository_Should_Save_Currently_Watching_Show_Without_Watched_Date()
     {
+        // Arrange
         var saved = new List<Show>();
         var repository = new Mock<IShowRepository>();
         repository.Setup(r => r.SaveAsync(It.IsAny<Show>(), It.IsAny<CancellationToken>()))
@@ -55,15 +59,18 @@ public class ShowRepositoryContractTests
             Season = 1
         };
 
+        // Act
         await repository.Object.SaveAsync(show, CancellationToken.None);
         var results = await repository.Object.GetAllAsync(CancellationToken.None);
 
+        // Assert
         results.Should().ContainSingle().Which.DateWatched.Should().BeNull();
     }
 
     [Fact]
     public async Task Repository_Should_Update_And_Delete_Show_Through_Contract()
     {
+        // Arrange
         var saved = new List<Show>
         {
             new()
@@ -87,14 +94,18 @@ public class ShowRepositoryContractTests
             .Callback<string, CancellationToken>((id, _) => saved.RemoveAll(show => show.Id == id))
             .Returns(Task.CompletedTask);
 
+        // Act
         await repository.Object.UpdateWatchedDateAsync("show-1", new DateTime(2026, 6, 25), CancellationToken.None);
         var updated = await repository.Object.GetByIdAsync("show-1", CancellationToken.None);
 
+        // Assert
         updated.Should().NotBeNull();
         updated!.DateWatched.Should().Be(new DateTime(2026, 6, 25));
 
+        // Act
         await repository.Object.DeleteAsync("show-1", CancellationToken.None);
 
+        // Assert
         saved.Should().BeEmpty();
     }
 }

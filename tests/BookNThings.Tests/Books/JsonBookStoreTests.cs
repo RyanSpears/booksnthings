@@ -12,6 +12,7 @@ public class JsonBookStoreTests
     [Fact]
     public async Task JsonBookStore_Should_Upsert_Update_And_Delete_Books()
     {
+        // Arrange
         var store = CreateStore(out var dataDirectory);
         try
         {
@@ -26,16 +27,22 @@ public class JsonBookStoreTests
                 Genres = ["Science Fiction"]
             };
 
+            // Act
             await store.UpsertAsync(book, CancellationToken.None);
             await store.UpdateReadDateAsync(book.Id, new DateTime(2026, 5, 20), CancellationToken.None);
 
             var updated = await store.GetByIdAsync(book.Id, CancellationToken.None);
+
+            // Assert
             updated.Should().NotBeNull();
             updated!.DateRead.Should().Be(new DateTime(2026, 5, 20));
 
+            // Act
             await store.DeleteAsync(book.Id, CancellationToken.None);
 
             var books = await store.GetAllAsync(CancellationToken.None);
+
+            // Assert
             books.Should().BeEmpty();
         }
         finally
@@ -47,9 +54,11 @@ public class JsonBookStoreTests
     [Fact]
     public async Task JsonBookStore_Should_Replace_All_Books_With_The_Current_State()
     {
+        // Arrange
         var store = CreateStore(out var dataDirectory);
         try
         {
+            // Act
             await store.ReplaceAllAsync(
                 [
                     new()
@@ -66,6 +75,7 @@ public class JsonBookStoreTests
                 ],
                 CancellationToken.None);
 
+            // Act
             await store.ReplaceAllAsync(
                 [
                     new()
@@ -84,6 +94,7 @@ public class JsonBookStoreTests
 
             var books = await store.GetAllAsync(CancellationToken.None);
 
+            // Assert
             books.Should().ContainSingle();
             books[0].Id.Should().Be("book-2");
         }

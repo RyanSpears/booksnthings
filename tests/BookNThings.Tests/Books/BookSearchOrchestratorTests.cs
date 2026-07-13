@@ -12,18 +12,22 @@ public class BookSearchOrchestratorTests
     [Fact]
     public async Task SearchAsync_Should_Reject_Empty_Query()
     {
+        // Arrange
         var service = new Mock<IBookSearchService>();
         var logger = Mock.Of<ILogger<BookSearchOrchestrator>>();
         var orchestrator = new BookSearchOrchestrator(service.Object, logger);
 
+        // Act
         var act = () => orchestrator.SearchAsync(" ", CancellationToken.None);
 
+        // Assert
         await act.Should().ThrowAsync<ArgumentException>();
     }
 
     [Fact]
     public async Task SearchAsync_Should_Trim_Query_And_Return_Results()
     {
+        // Arrange
         var expected = new[]
         {
             new Book
@@ -39,8 +43,10 @@ public class BookSearchOrchestratorTests
 
         var orchestrator = new BookSearchOrchestrator(service.Object, Mock.Of<ILogger<BookSearchOrchestrator>>());
 
+        // Act
         var results = await orchestrator.SearchAsync(" Dune ", CancellationToken.None);
 
+        // Assert
         results.Should().ContainSingle().Which.Title.Should().Be("Dune");
     }
 }

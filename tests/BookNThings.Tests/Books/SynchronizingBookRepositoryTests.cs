@@ -14,6 +14,7 @@ public class SynchronizingBookRepositoryTests
     [Fact]
     public async Task GetAllAsync_Should_Fallback_To_Local_Json_When_Mongo_Times_Out()
     {
+        // Arrange
         var jsonStore = CreateStore(out var dataDirectory);
         try
         {
@@ -40,8 +41,10 @@ public class SynchronizingBookRepositoryTests
                 jsonStore,
                 NullLogger<SynchronizingBookRepository>.Instance);
 
+            // Act
             var books = await repository.GetAllAsync(CancellationToken.None);
 
+            // Assert
             books.Should().ContainSingle();
             books[0].Id.Should().Be("book-1");
             books[0].Title.Should().Be("Kindred");
@@ -55,6 +58,7 @@ public class SynchronizingBookRepositoryTests
     [Fact]
     public async Task AlignAsync_Should_Reconcile_Missing_Books_Between_Mongo_And_Local_Json()
     {
+        // Arrange
         var jsonStore = CreateStore(out var dataDirectory);
         try
         {
@@ -98,8 +102,10 @@ public class SynchronizingBookRepositoryTests
                 jsonStore,
                 NullLogger<SynchronizingBookRepository>.Instance);
 
+            // Act
             await repository.AlignAsync(CancellationToken.None);
 
+            // Assert
             replacedBooks.Should().NotBeNull();
             replacedBooks!.Select(book => book.Id).Should().BeEquivalentTo("local-book", "mongo-book");
 

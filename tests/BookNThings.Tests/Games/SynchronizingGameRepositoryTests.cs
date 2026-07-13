@@ -14,6 +14,7 @@ public class SynchronizingGameRepositoryTests
     [Fact]
     public async Task GetAllAsync_Should_Fallback_To_Local_Json_When_Mongo_Times_Out()
     {
+        // Arrange
         var jsonStore = CreateStore(out var dataDirectory);
         try
         {
@@ -41,8 +42,10 @@ public class SynchronizingGameRepositoryTests
                 jsonStore,
                 NullLogger<SynchronizingGameRepository>.Instance);
 
+            // Act
             var games = await repository.GetAllAsync(CancellationToken.None);
 
+            // Assert
             games.Should().ContainSingle();
             games[0].Id.Should().Be("game-1");
             games[0].Title.Should().Be("Baldur's Gate 3");
@@ -56,6 +59,7 @@ public class SynchronizingGameRepositoryTests
     [Fact]
     public async Task AlignAsync_Should_Reconcile_Missing_Games_Between_Mongo_And_Local_Json()
     {
+        // Arrange
         var jsonStore = CreateStore(out var dataDirectory);
         try
         {
@@ -101,8 +105,10 @@ public class SynchronizingGameRepositoryTests
                 jsonStore,
                 NullLogger<SynchronizingGameRepository>.Instance);
 
+            // Act
             await repository.AlignAsync(CancellationToken.None);
 
+            // Assert
             replacedGames.Should().NotBeNull();
             replacedGames!.Select(game => game.Id).Should().BeEquivalentTo("local-game", "mongo-game");
 
