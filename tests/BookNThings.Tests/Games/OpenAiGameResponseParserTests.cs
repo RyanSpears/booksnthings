@@ -8,6 +8,7 @@ public class OpenAiGameResponseParserTests
     [Fact]
     public void Parse_Should_Map_Valid_Structured_Response()
     {
+        // Arrange
         const string json = """
         {
           "results": [
@@ -24,8 +25,10 @@ public class OpenAiGameResponseParserTests
         }
         """;
 
+        // Act
         var results = OpenAiGameResponseParser.Parse(json);
 
+        // Assert
         results.Should().ContainSingle();
         results[0].Title.Should().Be("Baldur's Gate 3");
         results[0].ReleasedDate.Should().Be(new DateTime(2023, 8, 3));
@@ -36,8 +39,13 @@ public class OpenAiGameResponseParserTests
     [Fact]
     public void Parse_Should_Throw_For_Invalid_Json()
     {
-        var act = () => OpenAiGameResponseParser.Parse("{ nope");
+        // Arrange
+        const string json = "{ nope";
 
+        // Act
+        var act = () => OpenAiGameResponseParser.Parse(json);
+
+        // Assert
         act.Should().Throw<InvalidOperationException>()
             .WithMessage("*invalid JSON*");
     }
@@ -45,6 +53,7 @@ public class OpenAiGameResponseParserTests
     [Fact]
     public void Parse_Should_Throw_For_Invalid_Game()
     {
+        // Arrange
         const string json = """
         {
           "results": [
@@ -61,8 +70,10 @@ public class OpenAiGameResponseParserTests
         }
         """;
 
+        // Act
         var act = () => OpenAiGameResponseParser.Parse(json);
 
+        // Assert
         act.Should().Throw<InvalidOperationException>()
             .WithMessage("*failed validation*");
     }

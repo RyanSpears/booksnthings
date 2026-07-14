@@ -8,6 +8,7 @@ public class OpenAiShowResponseParserTests
     [Fact]
     public void Parse_Should_Map_Valid_Structured_Response()
     {
+        // Arrange
         const string json = """
         {
           "results": [
@@ -24,8 +25,10 @@ public class OpenAiShowResponseParserTests
         }
         """;
 
+        // Act
         var results = OpenAiShowResponseParser.Parse(json);
 
+        // Assert
         results.Should().ContainSingle();
         results[0].Title.Should().Be("Severance");
         results[0].Network.Should().Be("Apple TV+");
@@ -36,8 +39,13 @@ public class OpenAiShowResponseParserTests
     [Fact]
     public void Parse_Should_Throw_For_Invalid_Json()
     {
-        var act = () => OpenAiShowResponseParser.Parse("{ nope");
+        // Arrange
+        const string json = "{ nope";
 
+        // Act
+        var act = () => OpenAiShowResponseParser.Parse(json);
+
+        // Assert
         act.Should().Throw<InvalidOperationException>()
             .WithMessage("*invalid JSON*");
     }
@@ -45,6 +53,7 @@ public class OpenAiShowResponseParserTests
     [Fact]
     public void Parse_Should_Throw_For_Invalid_Show()
     {
+        // Arrange
         const string json = """
         {
           "results": [
@@ -61,8 +70,10 @@ public class OpenAiShowResponseParserTests
         }
         """;
 
+        // Act
         var act = () => OpenAiShowResponseParser.Parse(json);
 
+        // Assert
         act.Should().Throw<InvalidOperationException>()
             .WithMessage("*failed validation*");
     }

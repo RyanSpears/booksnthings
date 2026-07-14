@@ -12,18 +12,22 @@ public class GameSearchOrchestratorTests
     [Fact]
     public async Task SearchAsync_Should_Reject_Empty_Query()
     {
+        // Arrange
         var service = new Mock<IGameSearchService>();
         var logger = Mock.Of<ILogger<GameSearchOrchestrator>>();
         var orchestrator = new GameSearchOrchestrator(service.Object, logger);
 
+        // Act
         var act = () => orchestrator.SearchAsync(" ", CancellationToken.None);
 
+        // Assert
         await act.Should().ThrowAsync<ArgumentException>();
     }
 
     [Fact]
     public async Task SearchAsync_Should_Trim_Query_And_Return_Results()
     {
+        // Arrange
         var expected = new[]
         {
             new Game
@@ -41,8 +45,10 @@ public class GameSearchOrchestratorTests
 
         var orchestrator = new GameSearchOrchestrator(service.Object, Mock.Of<ILogger<GameSearchOrchestrator>>());
 
+        // Act
         var results = await orchestrator.SearchAsync(" Baldur's Gate 3 ", CancellationToken.None);
 
+        // Assert
         results.Should().ContainSingle().Which.Title.Should().Be("Baldur's Gate 3");
     }
 }

@@ -8,6 +8,7 @@ public class OpenAiBookResponseParserTests
     [Fact]
     public void Parse_Should_Map_Valid_Structured_Response()
     {
+        // Arrange
         const string json = """
         {
           "results": [
@@ -23,8 +24,10 @@ public class OpenAiBookResponseParserTests
         }
         """;
 
+        // Act
         var results = OpenAiBookResponseParser.Parse(json);
 
+        // Assert
         results.Should().ContainSingle();
         results[0].Title.Should().Be("Dune");
         results[0].DatePublished.Should().Be(new DateTime(1965, 8, 1));
@@ -33,8 +36,13 @@ public class OpenAiBookResponseParserTests
     [Fact]
     public void Parse_Should_Throw_For_Invalid_Json()
     {
-        var act = () => OpenAiBookResponseParser.Parse("{ nope");
+        // Arrange
+        const string json = "{ nope";
 
+        // Act
+        var act = () => OpenAiBookResponseParser.Parse(json);
+
+        // Assert
         act.Should().Throw<InvalidOperationException>()
             .WithMessage("*invalid JSON*");
     }
@@ -42,6 +50,7 @@ public class OpenAiBookResponseParserTests
     [Fact]
     public void Parse_Should_Throw_For_Invalid_Book()
     {
+        // Arrange
         const string json = """
         {
           "results": [
@@ -57,8 +66,10 @@ public class OpenAiBookResponseParserTests
         }
         """;
 
+        // Act
         var act = () => OpenAiBookResponseParser.Parse(json);
 
+        // Assert
         act.Should().Throw<InvalidOperationException>()
             .WithMessage("*failed validation*");
     }
