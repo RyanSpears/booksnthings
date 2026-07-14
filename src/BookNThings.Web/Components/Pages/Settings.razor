@@ -27,23 +27,6 @@
 
         <MudItem xs="12" md="6">
             <MudPaper Class="panel" Elevation="0">
-                <MudText Typo="Typo.h6">MongoDB Atlas</MudText>
-                <MudList T="string" Dense="true">
-                    <MudListItem Icon="@StatusIcon(StatusService.IsMongoConfigured)" IconColor="@StatusColor(StatusService.IsMongoConfigured)">
-                        Connection string: @ConfiguredText(StatusService.IsMongoConfigured)
-                    </MudListItem>
-                    <MudListItem Icon="@StatusIcon(mongoCanConnect == true)" IconColor="@StatusColor(mongoCanConnect == true)">
-                        Connection: @MongoConnectionText
-                    </MudListItem>
-                </MudList>
-                <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="CheckMongoAsync" Disabled="@isCheckingMongo" StartIcon="@Icons.Material.Filled.Cable">
-                    Check connection
-                </MudButton>
-            </MudPaper>
-        </MudItem>
-
-        <MudItem xs="12">
-            <MudPaper Class="panel" Elevation="0">
                 <MudText Typo="Typo.h6">Local JSON Storage</MudText>
                 <MudText Class="muted-text">
                     This folder is stored for this app on the server machine. Enter a path the app process can read and write.
@@ -103,9 +86,7 @@
 </MudStack>
 
 @code {
-    private bool isCheckingMongo;
     private bool isSavingStorage;
-    private bool? mongoCanConnect;
     private string _dataDirectory = "";
     private string dataDirectory
     {
@@ -121,13 +102,6 @@
     private string? storageMessage;
     private string? errorMessage;
     private string? storageDirectoryError;
-
-    private string MongoConnectionText => mongoCanConnect switch
-    {
-        true => "Connected",
-        false => "Not connected",
-        null => "Not checked"
-    };
 
     private static string ConfiguredText(bool value) => value ? "Configured" : "Missing";
 
@@ -220,27 +194,6 @@
         finally
         {
             isSavingStorage = false;
-        }
-    }
-
-    private async Task CheckMongoAsync()
-    {
-        errorMessage = null;
-        isCheckingMongo = true;
-
-        try
-        {
-            mongoCanConnect = await StatusService.CanConnectToMongoAsync(CancellationToken.None);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "MongoDB connection check failed.");
-            mongoCanConnect = false;
-            errorMessage = "MongoDB connection failed. Check your Atlas allowlist, credentials, and environment variables.";
-        }
-        finally
-        {
-            isCheckingMongo = false;
         }
     }
 }

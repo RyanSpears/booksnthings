@@ -3,7 +3,6 @@ using BookNThings.Domain.Models;
 using BookNThings.Infrastructure.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using MongoDB.Bson;
 
 namespace BookNThings.Infrastructure.Local;
 
@@ -190,7 +189,7 @@ public sealed class JsonShowStore
     {
         if (string.IsNullOrWhiteSpace(show.Id))
         {
-            show.Id = ObjectId.GenerateNewId().ToString();
+            show.Id = Guid.NewGuid().ToString("N");
         }
     }
 

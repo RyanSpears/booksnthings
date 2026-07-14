@@ -4,9 +4,7 @@ using BookNThings.Application.Services;
 using BookNThings.Infrastructure.Configuration;
 using BookNThings.Infrastructure.Health;
 using BookNThings.Infrastructure.Local;
-using BookNThings.Infrastructure.Mongo;
 using BookNThings.Infrastructure.OpenAi;
-using BookNThings.Web.Services;
 using Microsoft.AspNetCore.DataProtection;
 using MudBlazor.Services;
 
@@ -28,7 +26,6 @@ builder.Services.AddDataProtection()
 
 builder.Services.AddMudServices();
 builder.Services.Configure<OpenAiOptions>(builder.Configuration.GetSection(OpenAiOptions.SectionName));
-builder.Services.Configure<MongoDbOptions>(builder.Configuration.GetSection(MongoDbOptions.SectionName));
 builder.Services.Configure<LocalBooksOptions>(options => options.FileName = "books.json");
 builder.Services.Configure<LocalGamesOptions>(options => options.FileName = "games.json");
 builder.Services.Configure<LocalShowsOptions>(options => options.FileName = "show.json");
@@ -42,24 +39,12 @@ builder.Services.AddScoped<ConnectionStatusService>();
 builder.Services.AddHttpClient<IBookSearchService, OpenAiBookSearchService>();
 builder.Services.AddHttpClient<IShowSearchService, OpenAiShowSearchService>();
 builder.Services.AddHttpClient<IGameSearchService, OpenAiGameSearchService>();
-builder.Services.AddScoped<IMongoBookRepository, MongoBookRepository>();
-builder.Services.AddScoped<IMongoGameRepository, MongoGameRepository>();
-builder.Services.AddScoped<IMongoShowRepository, MongoShowRepository>();
 builder.Services.AddScoped<JsonBookStore>();
 builder.Services.AddScoped<JsonGameStore>();
 builder.Services.AddScoped<JsonShowStore>();
-builder.Services.AddScoped<SynchronizingBookRepository>();
-builder.Services.AddScoped<SynchronizingGameRepository>();
-builder.Services.AddScoped<SynchronizingShowRepository>();
-builder.Services.AddScoped<IBookRepository>(provider => provider.GetRequiredService<SynchronizingBookRepository>());
-builder.Services.AddScoped<IBookDataSynchronizer>(provider => provider.GetRequiredService<SynchronizingBookRepository>());
-builder.Services.AddScoped<IGameRepository>(provider => provider.GetRequiredService<SynchronizingGameRepository>());
-builder.Services.AddScoped<IGameDataSynchronizer>(provider => provider.GetRequiredService<SynchronizingGameRepository>());
-builder.Services.AddScoped<IShowRepository>(provider => provider.GetRequiredService<SynchronizingShowRepository>());
-builder.Services.AddScoped<IShowDataSynchronizer>(provider => provider.GetRequiredService<SynchronizingShowRepository>());
-builder.Services.AddHostedService<BookDataAlignmentHostedService>();
-builder.Services.AddHostedService<GameDataAlignmentHostedService>();
-builder.Services.AddHostedService<ShowDataAlignmentHostedService>();
+builder.Services.AddScoped<IBookRepository, JsonBookRepository>();
+builder.Services.AddScoped<IGameRepository, JsonGameRepository>();
+builder.Services.AddScoped<IShowRepository, JsonShowRepository>();
 
 var app = builder.Build();
 

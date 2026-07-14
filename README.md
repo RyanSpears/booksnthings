@@ -1,30 +1,21 @@
 # BookNThings
 
-BookNThings is a local-deployable .NET 10 Blazor Web App for finding books and games with natural language, validating OpenAI structured JSON outputs, saving selected records to MongoDB Atlas, and browsing saved media.
+BookNThings is a local-deployable .NET 10 Blazor Web App for finding books and games with natural language, validating OpenAI structured JSON outputs, saving selected records to local JSON files, and browsing saved media.
 
 ## Architecture
 
 - `src/BookNThings.Web`: Blazor Web App UI, routing, forms, configuration bootstrap, dependency injection, and user-friendly error handling.
 - `src/BookNThings.Application`: service contracts, domain model, validation, and orchestration logic without external integration details.
-- `src/BookNThings.Infrastructure`: MongoDB Atlas repository, OpenAI structured output integration, configuration models, and connection checks.
+- `src/BookNThings.Infrastructure`: local JSON repositories, OpenAI structured output integration, configuration models, and app settings helpers.
 - `tests/BookNThings.Tests`: xUnit tests covering models, validation, application services, repository contracts, and OpenAI parsing.
 
 ## Prerequisites
 
 - .NET 10 SDK
 - Docker Desktop
-- MongoDB Atlas M0 cluster
 - OpenAI API key
 
-## MongoDB Atlas Setup
-
-1. Create a free M0 cluster in MongoDB Atlas.
-2. Create a database user with read/write permissions.
-3. Add your local IP address to Network Access.
-4. Copy the `mongodb+srv://...` connection string.
-5. Set `MongoDb__ConnectionString` locally, or use `MONGODB_CONNECTION_STRING` with Docker Compose.
-
-The app stores books in database `booknthings`, collection `books`, games in `games`, and TV shows in `shows`, unless overridden.
+The app stores books in `books.json`, games in `games.json`, and TV shows in `show.json` inside the configured local JSON storage folder.
 
 ## OpenAI Setup
 
@@ -44,11 +35,6 @@ Local development:
 ```text
 OpenAI__ApiKey
 OpenAI__Model
-MongoDb__ConnectionString
-MongoDb__DatabaseName
-MongoDb__BooksCollection
-MongoDb__GamesCollection
-MongoDb__ShowsCollection
 ```
 
 ## User Secrets
@@ -58,24 +44,17 @@ For local development, the web project is configured with ASP.NET Core User Secr
 ```text
 OpenAI:ApiKey
 OpenAI:Model
-MongoDb:ConnectionString
-MongoDb:DatabaseName
-MongoDb:BooksCollection
-MongoDb:GamesCollection
-MongoDb:ShowsCollection
 ```
 
 Update them with real values:
 
 ```bash
 dotnet user-secrets set --project src/BookNThings.Web "OpenAI:ApiKey" "sk-..."
-dotnet user-secrets set --project src/BookNThings.Web "MongoDb:ConnectionString" "mongodb+srv://..."
 ```
 
 Docker Compose reads:
 
 ```text
-MONGODB_CONNECTION_STRING
 OPENAI_API_KEY
 ```
 
@@ -132,7 +111,6 @@ Add screenshots here after running the app locally:
 - AI-generated summaries
 - Semantic search
 - Import/export
-- Local MongoDB container option
 - Authentication
 - Background jobs
 - Caching
