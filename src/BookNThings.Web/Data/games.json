@@ -1,5 +1,21 @@
 [
   {
+    "id": "6a51e19502384cbfd37e3e69",
+    "title": "State of Decay 2",
+    "publisher": "Xbox Game Studios",
+    "studio": "Undead Labs",
+    "releasedDate": "2018-05-21T14:30:00Z",
+    "datePlayed": "2026-07-13T14:30:00Z",
+    "rating": 65,
+    "genres": [
+      "Action",
+      "Survival",
+      "Open World"
+    ],
+    "developer": "Undead Labs",
+    "createdAt": "2026-07-11T06:24:17.871Z"
+  },
+  {
     "id": "6a34f145b66ebaea05ab8724",
     "title": "007: First Thunder",
     "publisher": "Electronic Arts",
@@ -126,21 +142,5 @@
     ],
     "developer": "Capcom",
     "createdAt": "2026-06-24T21:32:22.322Z"
-  },
-  {
-    "id": "6a51e19502384cbfd37e3e69",
-    "title": "State of Decay 2",
-    "publisher": "Xbox Game Studios",
-    "studio": "Undead Labs",
-    "releasedDate": "2018-05-21T14:30:00Z",
-    "datePlayed": null,
-    "rating": 65,
-    "genres": [
-      "Action",
-      "Survival",
-      "Open World"
-    ],
-    "developer": "Undead Labs",
-    "createdAt": "2026-07-11T06:24:17.871Z"
   }
 ]

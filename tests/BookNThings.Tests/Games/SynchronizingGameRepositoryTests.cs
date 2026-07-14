@@ -124,10 +124,9 @@ public class SynchronizingGameRepositoryTests
 
         var options = Options.Create(new LocalGamesOptions
         {
-            DataDirectory = dataDirectory,
             FileName = "games.json"
         });
 
-        return new JsonGameStore(options, NullLogger<JsonGameStore>.Instance);
+        return new JsonGameStore(options, new TestLocalJsonStorageSettings(dataDirectory), NullLogger<JsonGameStore>.Instance);
     }
 }

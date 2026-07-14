@@ -15,12 +15,17 @@ public sealed class JsonBookStore
     };
 
     private readonly LocalBooksOptions _options;
+    private readonly ILocalJsonStorageSettings _storageSettings;
     private readonly ILogger<JsonBookStore> _logger;
     private readonly SemaphoreSlim _gate = new(1, 1);
 
-    public JsonBookStore(IOptions<LocalBooksOptions> options, ILogger<JsonBookStore> logger)
+    public JsonBookStore(
+        IOptions<LocalBooksOptions> options,
+        ILocalJsonStorageSettings storageSettings,
+        ILogger<JsonBookStore> logger)
     {
         _options = options.Value;
+        _storageSettings = storageSettings;
         _logger = logger;
     }
 
@@ -162,9 +167,9 @@ public sealed class JsonBookStore
 
     private string GetFilePath()
     {
-        var dataDirectory = string.IsNullOrWhiteSpace(_options.DataDirectory)
+        var dataDirectory = string.IsNullOrWhiteSpace(_storageSettings.DataDirectory)
             ? Path.Combine(AppContext.BaseDirectory, "Data")
-            : _options.DataDirectory;
+            : _storageSettings.DataDirectory;
 
         var fileName = string.IsNullOrWhiteSpace(_options.FileName) ? "books.json" : _options.FileName;
         return Path.Combine(dataDirectory, fileName);

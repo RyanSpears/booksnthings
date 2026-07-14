@@ -15,12 +15,17 @@ public sealed class JsonShowStore
     };
 
     private readonly LocalShowsOptions _options;
+    private readonly ILocalJsonStorageSettings _storageSettings;
     private readonly ILogger<JsonShowStore> _logger;
     private readonly SemaphoreSlim _gate = new(1, 1);
 
-    public JsonShowStore(IOptions<LocalShowsOptions> options, ILogger<JsonShowStore> logger)
+    public JsonShowStore(
+        IOptions<LocalShowsOptions> options,
+        ILocalJsonStorageSettings storageSettings,
+        ILogger<JsonShowStore> logger)
     {
         _options = options.Value;
+        _storageSettings = storageSettings;
         _logger = logger;
     }
 
@@ -162,9 +167,9 @@ public sealed class JsonShowStore
 
     private string GetFilePath()
     {
-        var dataDirectory = string.IsNullOrWhiteSpace(_options.DataDirectory)
+        var dataDirectory = string.IsNullOrWhiteSpace(_storageSettings.DataDirectory)
             ? Path.Combine(AppContext.BaseDirectory, "Data")
-            : _options.DataDirectory;
+            : _storageSettings.DataDirectory;
 
         var fileName = string.IsNullOrWhiteSpace(_options.FileName) ? "show.json" : _options.FileName;
         return Path.Combine(dataDirectory, fileName);

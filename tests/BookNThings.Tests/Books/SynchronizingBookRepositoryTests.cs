@@ -121,10 +121,9 @@ public class SynchronizingBookRepositoryTests
 
         var options = Options.Create(new LocalBooksOptions
         {
-            DataDirectory = dataDirectory,
             FileName = "books.json"
         });
 
-        return new JsonBookStore(options, NullLogger<JsonBookStore>.Instance);
+        return new JsonBookStore(options, new TestLocalJsonStorageSettings(dataDirectory), NullLogger<JsonBookStore>.Instance);
     }
 }

@@ -124,10 +124,9 @@ public class SynchronizingShowRepositoryTests
 
         var options = Options.Create(new LocalShowsOptions
         {
-            DataDirectory = dataDirectory,
             FileName = "show.json"
         });
 
-        return new JsonShowStore(options, NullLogger<JsonShowStore>.Instance);
+        return new JsonShowStore(options, new TestLocalJsonStorageSettings(dataDirectory), NullLogger<JsonShowStore>.Instance);
     }
 }

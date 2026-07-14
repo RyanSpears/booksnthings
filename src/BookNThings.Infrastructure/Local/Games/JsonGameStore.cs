@@ -15,12 +15,17 @@ public sealed class JsonGameStore
     };
 
     private readonly LocalGamesOptions _options;
+    private readonly ILocalJsonStorageSettings _storageSettings;
     private readonly ILogger<JsonGameStore> _logger;
     private readonly SemaphoreSlim _gate = new(1, 1);
 
-    public JsonGameStore(IOptions<LocalGamesOptions> options, ILogger<JsonGameStore> logger)
+    public JsonGameStore(
+        IOptions<LocalGamesOptions> options,
+        ILocalJsonStorageSettings storageSettings,
+        ILogger<JsonGameStore> logger)
     {
         _options = options.Value;
+        _storageSettings = storageSettings;
         _logger = logger;
     }
 
@@ -162,9 +167,9 @@ public sealed class JsonGameStore
 
     private string GetFilePath()
     {
-        var dataDirectory = string.IsNullOrWhiteSpace(_options.DataDirectory)
+        var dataDirectory = string.IsNullOrWhiteSpace(_storageSettings.DataDirectory)
             ? Path.Combine(AppContext.BaseDirectory, "Data")
-            : _options.DataDirectory;
+            : _storageSettings.DataDirectory;
 
         var fileName = string.IsNullOrWhiteSpace(_options.FileName) ? "games.json" : _options.FileName;
         return Path.Combine(dataDirectory, fileName);

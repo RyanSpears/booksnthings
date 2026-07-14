@@ -1,7 +1,9 @@
 @page "/settings"
 @rendermode InteractiveServer
 @inject BookNThings.Infrastructure.Health.ConnectionStatusService StatusService
+@inject ILocalJsonStorageSettings StorageSettings
 @inject ILogger<Settings> Logger
+@inject IJSRuntime JS
 
 <PageTitle>Settings | BookNThings</PageTitle>
 
@@ -39,7 +41,60 @@
                 </MudButton>
             </MudPaper>
         </MudItem>
+
+        <MudItem xs="12">
+            <MudPaper Class="panel" Elevation="0">
+                <MudText Typo="Typo.h6">Local JSON Storage</MudText>
+                <MudText Class="muted-text">
+                    This folder is stored for this app on the server machine. Enter a path the app process can read and write.
+                </MudText>
+                <MudText Class="muted-text">
+                    Browse opens a browser prompt to help you paste or type a path. The app still validates the server folder path before saving.
+                </MudText>
+
+                <MudTextField @bind-Value="dataDirectory"
+                              Label="Storage folder"
+                              Variant="Variant.Outlined"
+                              FullWidth="true"
+                              Immediate="true"
+                              Error="@hasStorageDirectoryError"
+                              ErrorText="@storageDirectoryError" />
+
+                <MudText Typo="Typo.caption" Class="muted-text">
+                    The app keeps `books.json`, `games.json`, and `show.json` in this folder.
+                </MudText>
+
+                <MudStack Row="true" Spacing="2">
+                    <MudButton Variant="Variant.Outlined"
+                               Color="Color.Primary"
+                               OnClick="BrowseStorageDirectoryAsync"
+                               Disabled="@isSavingStorage"
+                               StartIcon="@Icons.Material.Filled.FolderOpen">
+                        Browse
+                    </MudButton>
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               OnClick="SaveStorageDirectoryAsync"
+                               Disabled="@(isSavingStorage || hasStorageDirectoryError)"
+                               StartIcon="@Icons.Material.Filled.Save">
+                        Save location
+                    </MudButton>
+                    <MudButton Variant="Variant.Outlined"
+                               Color="Color.Primary"
+                               OnClick="ResetStorageDirectoryAsync"
+                               Disabled="@isSavingStorage"
+                               StartIcon="@Icons.Material.Filled.Restore">
+                        Reset to default folder
+                    </MudButton>
+                </MudStack>
+            </MudPaper>
+        </MudItem>
     </MudGrid>
+
+    @if (!string.IsNullOrWhiteSpace(storageMessage))
+    {
+        <MudAlert Severity="Severity.Success" Variant="Variant.Outlined">@storageMessage</MudAlert>
+    }
 
     @if (!string.IsNullOrWhiteSpace(errorMessage))
     {
@@ -49,8 +104,23 @@
 
 @code {
     private bool isCheckingMongo;
+    private bool isSavingStorage;
     private bool? mongoCanConnect;
+    private string _dataDirectory = "";
+    private string dataDirectory
+    {
+        get => _dataDirectory;
+        set
+        {
+            _dataDirectory = value;
+            storageDirectoryError = ValidateStorageDirectory(value);
+        }
+    }
+
+    private bool hasStorageDirectoryError => !string.IsNullOrWhiteSpace(storageDirectoryError);
+    private string? storageMessage;
     private string? errorMessage;
+    private string? storageDirectoryError;
 
     private string MongoConnectionText => mongoCanConnect switch
     {
@@ -64,6 +134,94 @@
     private static Color StatusColor(bool value) => value ? Color.Success : Color.Error;
 
     private static string StatusIcon(bool value) => value ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Error;
+
+    protected override void OnInitialized()
+    {
+        dataDirectory = StorageSettings.DataDirectory;
+    }
+
+    private async Task BrowseStorageDirectoryAsync()
+    {
+        var selectedDirectory = await JS.InvokeAsync<string?>(
+            "bookNThingsSettings.pickStorageDirectory",
+            dataDirectory);
+
+        if (!string.IsNullOrWhiteSpace(selectedDirectory))
+        {
+            dataDirectory = selectedDirectory;
+        }
+    }
+
+    private async Task SaveStorageDirectoryAsync()
+    {
+        storageMessage = null;
+        errorMessage = null;
+        isSavingStorage = true;
+
+        try
+        {
+            storageDirectoryError = ValidateStorageDirectory(dataDirectory);
+            if (hasStorageDirectoryError)
+            {
+                errorMessage = storageDirectoryError;
+                return;
+            }
+
+            await StorageSettings.SetDataDirectoryAsync(dataDirectory, CancellationToken.None);
+            dataDirectory = StorageSettings.DataDirectory;
+            storageMessage = $"Local JSON storage folder saved to {StorageSettings.DataDirectory}.";
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Saving local JSON storage settings failed.");
+            errorMessage = "Could not save the storage folder. Make sure the path is valid and writable by the app.";
+        }
+        finally
+        {
+            isSavingStorage = false;
+        }
+    }
+
+    private static string? ValidateStorageDirectory(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return "Storage folder is required.";
+        }
+
+        try
+        {
+            _ = Path.GetFullPath(Environment.ExpandEnvironmentVariables(value));
+            return null;
+        }
+        catch
+        {
+            return "Enter a valid folder path.";
+        }
+    }
+
+    private async Task ResetStorageDirectoryAsync()
+    {
+        storageMessage = null;
+        errorMessage = null;
+        isSavingStorage = true;
+
+        try
+        {
+            await StorageSettings.ResetToDefaultDataDirectoryAsync(CancellationToken.None);
+            dataDirectory = StorageSettings.DataDirectory;
+            storageMessage = $"Local JSON storage folder reset to the default Data folder at {StorageSettings.DataDirectory}.";
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Resetting local JSON storage settings failed.");
+            errorMessage = "Could not reset the storage folder. The app will keep using the current folder.";
+        }
+        finally
+        {
+            isSavingStorage = false;
+        }
+    }
 
     private async Task CheckMongoAsync()
     {

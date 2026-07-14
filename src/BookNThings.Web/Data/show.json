@@ -1,5 +1,21 @@
 [
   {
+    "id": "66a1d7f9d3a4b0a1c2d3e413",
+    "title": "Silo",
+    "network": "Apple TV\u002B",
+    "studio": "M\u00EDmir Films, Nemo Films, AMC Studios, Apple Studios",
+    "season": 1,
+    "dateWatched": "2026-07-13T14:30:00Z",
+    "rating": 88,
+    "genres": [
+      "Drama",
+      "Dystopian",
+      "Science Fiction"
+    ],
+    "creator": "Graham Yost",
+    "createdAt": "2026-06-24T00:00:00Z"
+  },
+  {
     "id": "6a45e744f448bc45f3cf6374",
     "title": "The Book of Boba Fett",
     "network": "Disney\u002B",
@@ -226,22 +242,6 @@
     ],
     "creator": "Critical Role Productions",
     "createdAt": "2026-05-11T00:00:00Z"
-  },
-  {
-    "id": "66a1d7f9d3a4b0a1c2d3e413",
-    "title": "Silo",
-    "network": "Apple TV\u002B",
-    "studio": "M\u00EDmir Films, Nemo Films, AMC Studios, Apple Studios",
-    "season": 1,
-    "dateWatched": null,
-    "rating": 88,
-    "genres": [
-      "Drama",
-      "Dystopian",
-      "Science Fiction"
-    ],
-    "creator": "Graham Yost",
-    "createdAt": "2026-06-24T00:00:00Z"
   },
   {
     "id": "66a1d7f9d3a4b0a1c2d3e411",

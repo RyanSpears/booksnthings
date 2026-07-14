@@ -29,21 +29,11 @@ builder.Services.AddDataProtection()
 builder.Services.AddMudServices();
 builder.Services.Configure<OpenAiOptions>(builder.Configuration.GetSection(OpenAiOptions.SectionName));
 builder.Services.Configure<MongoDbOptions>(builder.Configuration.GetSection(MongoDbOptions.SectionName));
-builder.Services.Configure<LocalBooksOptions>(options =>
-{
-    options.DataDirectory = Path.Combine(builder.Environment.ContentRootPath, "Data");
-    options.FileName = "books.json";
-});
-builder.Services.Configure<LocalGamesOptions>(options =>
-{
-    options.DataDirectory = Path.Combine(builder.Environment.ContentRootPath, "Data");
-    options.FileName = "games.json";
-});
-builder.Services.Configure<LocalShowsOptions>(options =>
-{
-    options.DataDirectory = Path.Combine(builder.Environment.ContentRootPath, "Data");
-    options.FileName = "show.json";
-});
+builder.Services.Configure<LocalBooksOptions>(options => options.FileName = "books.json");
+builder.Services.Configure<LocalGamesOptions>(options => options.FileName = "games.json");
+builder.Services.Configure<LocalShowsOptions>(options => options.FileName = "show.json");
+builder.Services.AddSingleton<LocalJsonStorageSettingsService>();
+builder.Services.AddSingleton<ILocalJsonStorageSettings>(provider => provider.GetRequiredService<LocalJsonStorageSettingsService>());
 
 builder.Services.AddScoped<BookSearchOrchestrator>();
 builder.Services.AddScoped<ShowSearchOrchestrator>();

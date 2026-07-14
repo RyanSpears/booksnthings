@@ -1,5 +1,7 @@
 **/bin/
 **/obj/
+.DS_Store
+**/.DS_Store
 .artifacts/
 .vs/
 .vscode/
