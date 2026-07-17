@@ -1,0 +1,267 @@
+@page "/search-movies"
+@rendermode InteractiveServer
+@inject MovieSearchOrchestrator SearchOrchestrator
+@inject IMovieRepository Repository
+@inject ILogger<SearchMovies> Logger
+
+<PageTitle>Search Movies | BookNThings</PageTitle>
+
+<MudStack Spacing="3">
+    <MudText Typo="Typo.h3">Search Movies</MudText>
+    <MudText Class="muted-text">Search for movies and save them as currently watching or watched.</MudText>
+
+    <MudPaper Class="panel" Elevation="0">
+        <MudStack Spacing="2">
+            <MudTextField @bind-Value="query"
+                          Label="Search query"
+                          Placeholder="Try: stylish sci-fi films with strong visual design"
+                          Variant="Variant.Outlined"
+                          Disabled="@isSearching"
+                          Immediate="true" />
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SearchAsync" Disabled="@isSearching" StartIcon="@Icons.Material.Filled.Search">
+                @if (isSearching)
+                {
+                    <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="button-spinner" />
+                    <span>Searching</span>
+                }
+                else
+                {
+                    <span>Search</span>
+                }
+            </MudButton>
+
+            @if (!string.IsNullOrWhiteSpace(errorMessage))
+            {
+                <MudAlert Severity="Severity.Error" Variant="Variant.Outlined">@errorMessage</MudAlert>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(successMessage))
+            {
+                <MudAlert Severity="Severity.Success" Variant="Variant.Outlined">@successMessage</MudAlert>
+            }
+        </MudStack>
+    </MudPaper>
+
+    @if (results.Count > 0)
+    {
+        <MudGrid>
+            @foreach (var movie in results)
+            {
+                <MudItem xs="12" md="6" lg="4">
+                    <MudCard Class="book-card" Elevation="0">
+                        <MudCardContent>
+                            <MudText Typo="Typo.h6">@movie.Title</MudText>
+                            <MudText Typo="Typo.subtitle2" Class="muted-text">@movie.Studio</MudText>
+                            @if (!string.IsNullOrWhiteSpace(movie.Director))
+                            {
+                                <MudText Typo="Typo.body2">Director: @movie.Director</MudText>
+                            }
+                            <MudDivider Class="divider-space" />
+                            <MudGrid>
+                                <MudItem xs="6">
+                                    <MudText Typo="Typo.caption" Class="muted-text">Released</MudText>
+                                    <MudText Typo="Typo.body2"><b>@movie.ReleasedDate.ToString("yyyy-MM-dd")</b></MudText>
+                                </MudItem>
+                                <MudItem xs="6">
+                                    <MudText Typo="Typo.caption" Class="muted-text">Rating</MudText>
+                                    <MudText Typo="Typo.body2"><b>@(movie.Rating?.ToString("0") ?? "Unknown")</b></MudText>
+                                </MudItem>
+                            </MudGrid>
+                            @if (movie.Genres.Count > 0)
+                            {
+                                <MudStack Row="true" Spacing="1" Class="tag-row">
+                                    @foreach (var genre in movie.Genres)
+                                    {
+                                        <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined">@genre</MudChip>
+                                    }
+                                </MudStack>
+                            }
+                        </MudCardContent>
+                        <MudCardActions>
+                            @if (IsSelectingWatchedDate(movie))
+                            {
+                                <MudStack Spacing="2" Class="save-date-panel">
+                                    <MudDatePicker Label="Date watched"
+                                                   Date="@GetWatchedDate(movie)"
+                                                   DateChanged="date => SetWatchedDate(movie, date)"
+                                                   Variant="Variant.Outlined"
+                                                   Disabled="@savingKeys.Contains(GetMovieKey(movie))" />
+                                    <MudStack Row="true" Spacing="1" Class="action-row">
+                                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="() => SaveAsync(movie)" Disabled="@savingKeys.Contains(GetMovieKey(movie))" StartIcon="@Icons.Material.Filled.Save">
+                                            @(savingKeys.Contains(GetMovieKey(movie)) ? "Saving" : "Save watched")
+                                        </MudButton>
+                                        <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="() => CancelWatchedDateSelection(movie)" Disabled="@savingKeys.Contains(GetMovieKey(movie))">
+                                            Cancel
+                                        </MudButton>
+                                    </MudStack>
+                                </MudStack>
+                            }
+                            else
+                            {
+                                <MudStack Row="true" Spacing="1" Class="action-row">
+                                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="() => SaveCurrentlyWatchingAsync(movie)" Disabled="@savingKeys.Contains(GetMovieKey(movie))" StartIcon="@Icons.Material.Filled.Movie">
+                                        Currently watching
+                                    </MudButton>
+                                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="() => StartWatchedDateSelection(movie)" Disabled="@savingKeys.Contains(GetMovieKey(movie))" StartIcon="@Icons.Material.Filled.Save">
+                                        Save watched
+                                    </MudButton>
+                                </MudStack>
+                            }
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+            }
+        </MudGrid>
+    }
+</MudStack>
+
+@code {
+    private string query = "";
+    private string? errorMessage;
+    private string? successMessage;
+    private bool isSearching;
+    private readonly List<Movie> results = [];
+    private readonly Dictionary<string, DateTime?> watchedDates = [];
+    private readonly HashSet<string> selectingWatchedDateKeys = [];
+    private readonly HashSet<string> savingKeys = [];
+
+    private async Task SearchAsync()
+    {
+        errorMessage = null;
+        successMessage = null;
+        results.Clear();
+
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            errorMessage = "Enter a search query before searching.";
+            return;
+        }
+
+        try
+        {
+            isSearching = true;
+            var movies = await SearchOrchestrator.SearchAsync(query, CancellationToken.None);
+            results.AddRange(movies);
+            watchedDates.Clear();
+            selectingWatchedDateKeys.Clear();
+            savingKeys.Clear();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Movie search failed.");
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            isSearching = false;
+        }
+    }
+
+    private async Task SaveAsync(Movie movie)
+    {
+        errorMessage = null;
+        successMessage = null;
+        var key = GetMovieKey(movie);
+        var dateWatched = GetWatchedDate(movie) ?? DateTime.Today;
+        savingKeys.Add(key);
+
+        try
+        {
+            var watchedMovie = new Movie
+            {
+                Id = movie.Id,
+                Title = movie.Title,
+                Studio = movie.Studio,
+                ReleasedDate = movie.ReleasedDate,
+                DateWatched = dateWatched.Date,
+                Rating = movie.Rating,
+                Genres = [.. movie.Genres],
+                Director = movie.Director,
+                CreatedAt = movie.CreatedAt == default ? DateTime.UtcNow : movie.CreatedAt
+            };
+
+            await Repository.SaveAsync(watchedMovie, CancellationToken.None);
+            successMessage = $"Saved {movie.Title}.";
+            selectingWatchedDateKeys.Remove(key);
+            watchedDates.Remove(key);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Saving movie failed.");
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            savingKeys.Remove(key);
+        }
+    }
+
+    private async Task SaveCurrentlyWatchingAsync(Movie movie)
+    {
+        errorMessage = null;
+        successMessage = null;
+        var key = GetMovieKey(movie);
+        savingKeys.Add(key);
+
+        try
+        {
+            var currentlyWatching = new Movie
+            {
+                Id = movie.Id,
+                Title = movie.Title,
+                Studio = movie.Studio,
+                ReleasedDate = movie.ReleasedDate,
+                DateWatched = null,
+                Rating = movie.Rating,
+                Genres = [.. movie.Genres],
+                Director = movie.Director,
+                CreatedAt = movie.CreatedAt == default ? DateTime.UtcNow : movie.CreatedAt
+            };
+
+            await Repository.SaveAsync(currentlyWatching, CancellationToken.None);
+            successMessage = $"Saved {movie.Title} to Currently Watching.";
+            selectingWatchedDateKeys.Remove(key);
+            watchedDates.Remove(key);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Saving currently watching movie failed.");
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            savingKeys.Remove(key);
+        }
+    }
+
+    private void StartWatchedDateSelection(Movie movie)
+    {
+        var key = GetMovieKey(movie);
+        errorMessage = null;
+        successMessage = null;
+        selectingWatchedDateKeys.Add(key);
+        watchedDates.TryAdd(key, DateTime.Today);
+    }
+
+    private void CancelWatchedDateSelection(Movie movie)
+    {
+        var key = GetMovieKey(movie);
+        selectingWatchedDateKeys.Remove(key);
+        watchedDates.Remove(key);
+    }
+
+    private bool IsSelectingWatchedDate(Movie movie) => selectingWatchedDateKeys.Contains(GetMovieKey(movie));
+
+    private DateTime? GetWatchedDate(Movie movie)
+    {
+        var key = GetMovieKey(movie);
+        return watchedDates.TryGetValue(key, out var date) ? date : DateTime.Today;
+    }
+
+    private void SetWatchedDate(Movie movie, DateTime? date)
+    {
+        watchedDates[GetMovieKey(movie)] = date ?? DateTime.Today;
+    }
+
+    private static string GetMovieKey(Movie movie) => $"{movie.Title.Trim()}|{movie.Studio.Trim()}|{movie.ReleasedDate:O}";
+}

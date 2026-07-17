@@ -1,0 +1,193 @@
+@page "/currently-watching-movies/{Id}"
+@rendermode InteractiveServer
+@inject IMovieRepository Repository
+@inject ILogger<CurrentlyWatchingMovieEdit> Logger
+@inject NavigationManager Navigation
+
+<PageTitle>Edit Currently Watching Movie | BookNThings</PageTitle>
+
+<MudStack Spacing="3">
+    <MudText Typo="Typo.h3">Edit Currently Watching Movie</MudText>
+
+    @if (isLoading)
+    {
+        <MudPaper Class="panel loading-panel" Elevation="0">
+            <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+            <MudText>Loading currently watching movie</MudText>
+        </MudPaper>
+    }
+    else if (!string.IsNullOrWhiteSpace(errorMessage))
+    {
+        <MudPaper Class="panel" Elevation="0">
+            <MudAlert Severity="Severity.Error" Variant="Variant.Outlined">@errorMessage</MudAlert>
+            <MudButton Href="currently-watching-movies" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowBack">Back to Currently Watching Movies</MudButton>
+        </MudPaper>
+    }
+    else if (movie is not null)
+    {
+        <MudPaper Class="panel" Elevation="0">
+            <MudStack Spacing="3">
+                <div>
+                    <MudText Typo="Typo.h5">@movie.Title</MudText>
+                    <MudText Typo="Typo.subtitle2" Class="muted-text">@movie.Studio</MudText>
+                    @if (!string.IsNullOrWhiteSpace(movie.Director))
+                    {
+                        <MudText Typo="Typo.body2">Director: @movie.Director</MudText>
+                    }
+                </div>
+
+                <MudGrid>
+                    <MudItem xs="12" md="4">
+                        <MudText Typo="Typo.caption" Class="muted-text">Released</MudText>
+                        <MudText Typo="Typo.body2"><b>@movie.ReleasedDate.ToString("yyyy-MM-dd")</b></MudText>
+                    </MudItem>
+                    <MudItem xs="12" md="4">
+                        <MudText Typo="Typo.caption" Class="muted-text">Rating</MudText>
+                        <MudText Typo="Typo.body2"><b>@(movie.Rating?.ToString("0") ?? "Unknown")</b></MudText>
+                    </MudItem>
+                    <MudItem xs="12" md="4">
+                        <MudText Typo="Typo.caption" Class="muted-text">Genres</MudText>
+                        <MudText Typo="Typo.body2"><b>@string.Join(", ", movie.Genres)</b></MudText>
+                    </MudItem>
+                </MudGrid>
+
+                <MudDatePicker Label="Date watched"
+                               Date="@dateWatched"
+                               DateChanged="date => dateWatched = date ?? DateTime.Today"
+                               Variant="Variant.Outlined"
+                               Disabled="@isSaving" />
+
+                <MudStack Row="true" Spacing="2" Class="action-row">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="AddToWatchedAsync" Disabled="@isSaving" StartIcon="@Icons.Material.Filled.Save">
+                        @(isSaving ? "Saving" : "Add to watched")
+                    </MudButton>
+                    <MudButton Href="currently-watching-movies" Variant="Variant.Text" Color="Color.Primary" Disabled="@isSaving" StartIcon="@Icons.Material.Filled.ArrowBack">
+                        Cancel
+                    </MudButton>
+                </MudStack>
+            </MudStack>
+        </MudPaper>
+
+        <MudPaper Class="panel danger-zone" Elevation="0">
+            <MudStack Spacing="2">
+                <MudText Typo="Typo.h6">Remove from currently watching</MudText>
+                <MudText Class="muted-text">This will remove the movie from Currently Watching without marking it as watched.</MudText>
+
+                @if (isConfirmingDelete)
+                {
+                    <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined">This cannot be undone.</MudAlert>
+                    <MudStack Row="true" Spacing="2" Class="action-row">
+                        <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="DeleteAsync" Disabled="@isDeleting" StartIcon="@Icons.Material.Filled.DeleteForever">
+                            @(isDeleting ? "Removing" : "Remove")
+                        </MudButton>
+                        <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="() => isConfirmingDelete = false" Disabled="@isDeleting">
+                            Keep it
+                        </MudButton>
+                    </MudStack>
+                }
+                else
+                {
+                    <MudButton Variant="Variant.Outlined" Color="Color.Error" OnClick="() => isConfirmingDelete = true" StartIcon="@Icons.Material.Filled.Delete">
+                        Remove
+                    </MudButton>
+                }
+            </MudStack>
+        </MudPaper>
+    }
+</MudStack>
+
+@code {
+    [Parameter]
+    public string? Id { get; set; }
+
+    private Movie? movie;
+    private DateTime? dateWatched;
+    private bool isLoading = true;
+    private bool isSaving;
+    private bool isDeleting;
+    private bool isConfirmingDelete;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (string.IsNullOrWhiteSpace(Id))
+        {
+            errorMessage = "Currently watching movie id is required.";
+            isLoading = false;
+            return;
+        }
+
+        try
+        {
+            movie = await Repository.GetByIdAsync(Id, CancellationToken.None);
+            if (movie is null)
+            {
+                errorMessage = "Currently watching movie record was not found.";
+                return;
+            }
+
+            dateWatched = DateTime.Today;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Loading currently watching movie failed.");
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task AddToWatchedAsync()
+    {
+        if (string.IsNullOrWhiteSpace(Id))
+        {
+            errorMessage = "Currently watching movie id is required.";
+            return;
+        }
+
+        try
+        {
+            isSaving = true;
+            errorMessage = null;
+            await Repository.UpdateWatchedDateAsync(Id, (dateWatched ?? DateTime.Today).Date, CancellationToken.None);
+            Navigation.NavigateTo("movies-watched");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Adding currently watching movie to watched failed.");
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private async Task DeleteAsync()
+    {
+        if (string.IsNullOrWhiteSpace(Id))
+        {
+            errorMessage = "Currently watching movie id is required.";
+            return;
+        }
+
+        try
+        {
+            isDeleting = true;
+            errorMessage = null;
+            await Repository.DeleteAsync(Id, CancellationToken.None);
+            Navigation.NavigateTo("currently-watching-movies");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Deleting currently watching movie failed.");
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            isDeleting = false;
+        }
+    }
+}

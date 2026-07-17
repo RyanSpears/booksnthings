@@ -1,0 +1,142 @@
+@page "/currently-watching-movies"
+@rendermode InteractiveServer
+@inject IMovieRepository Repository
+@inject ILogger<CurrentlyWatchingMovies> Logger
+
+<PageTitle>Currently Watching Movies | BookNThings</PageTitle>
+
+<MudStack Spacing="3">
+    <MudText Typo="Typo.h3">Currently Watching Movies</MudText>
+
+    @if (isLoading)
+    {
+        <MudPaper Class="panel loading-panel" Elevation="0">
+            <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+            <MudText>Loading currently watching movies</MudText>
+        </MudPaper>
+    }
+    else if (!string.IsNullOrWhiteSpace(errorMessage))
+    {
+        <MudPaper Class="panel" Elevation="0">
+            <MudAlert Severity="Severity.Error" Variant="Variant.Outlined">@errorMessage</MudAlert>
+        </MudPaper>
+    }
+    else if (movies.Count == 0)
+    {
+        <MudPaper Class="empty-state" Elevation="0">
+            <MudText Typo="Typo.h5">No movies are currently being watched</MudText>
+            <MudText Class="muted-text">Save a movie from search without a watched date to keep it here until you finish it.</MudText>
+            <MudButton Href="search-movies" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Search">Search movies</MudButton>
+        </MudPaper>
+    }
+    else
+    {
+        <MudPaper Class="panel search-panel" Elevation="0">
+            <MudTextField @bind-Value="searchText"
+                          Placeholder="Search currently watching"
+                          Variant="Variant.Outlined"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search"
+                          Immediate="false" />
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ApplySearch" StartIcon="@Icons.Material.Filled.Search">
+                Search
+            </MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="ClearSearch" StartIcon="@Icons.Material.Filled.Clear">
+                Clear
+            </MudButton>
+        </MudPaper>
+
+        <MudPaper Class="panel table-panel" Elevation="0">
+            <MudTable Items="@CurrentlyWatchingFiltered" Dense="true" Hover="true" Breakpoint="Breakpoint.Sm" RowsPerPage="25">
+                <HeaderContent>
+                    <MudTh>Title</MudTh>
+                    <MudTh>Studio</MudTh>
+                    <MudTh>Released</MudTh>
+                    <MudTh>Genres</MudTh>
+                    <MudTh></MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Title">
+                        <MudText Typo="Typo.subtitle2">@context.Title</MudText>
+                        @if (!string.IsNullOrWhiteSpace(context.Director))
+                        {
+                            <MudText Typo="Typo.caption" Class="muted-text">@context.Director</MudText>
+                        }
+                    </MudTd>
+                    <MudTd DataLabel="Studio">@context.Studio</MudTd>
+                    <MudTd DataLabel="Released">@context.ReleasedDate.ToString("yyyy-MM-dd")</MudTd>
+                    <MudTd DataLabel="Genres">@string.Join(", ", context.Genres)</MudTd>
+                    <MudTd DataLabel="Actions">
+                        <MudButton Href="@($"currently-watching-movies/{context.Id}")" Variant="Variant.Text" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Filled.Edit">
+                            Edit
+                        </MudButton>
+                    </MudTd>
+                </RowTemplate>
+                <NoRecordsContent>
+                    <MudText Class="muted-text">No movies match your search.</MudText>
+                </NoRecordsContent>
+                <PagerContent>
+                    <MudTablePager PageSizeOptions="new[] { 25, 50, 100 }" />
+                </PagerContent>
+            </MudTable>
+        </MudPaper>
+    }
+</MudStack>
+
+@code {
+    private bool isLoading = true;
+    private string? errorMessage;
+    private string searchText = "";
+    private string appliedSearchText = "";
+    private List<Movie> movies = [];
+    private IEnumerable<Movie> CurrentlyWatchingFiltered => movies
+        .Where(MatchesSearch)
+        .OrderBy(item => item.Title);
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            movies = (await Repository.GetAllAsync(CancellationToken.None))
+                .Where(movie => !movie.DateWatched.HasValue)
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Loading currently watching movies failed.");
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void ApplySearch()
+    {
+        appliedSearchText = searchText.Trim();
+    }
+
+    private void ClearSearch()
+    {
+        searchText = "";
+        appliedSearchText = "";
+    }
+
+    private bool MatchesSearch(Movie movie)
+    {
+        if (string.IsNullOrWhiteSpace(appliedSearchText))
+        {
+            return true;
+        }
+
+        return ContainsSearchText(movie.Title)
+            || ContainsSearchText(movie.Studio)
+            || ContainsSearchText(movie.Director)
+            || movie.Genres.Any(ContainsSearchText);
+    }
+
+    private bool ContainsSearchText(string? value) =>
+        !string.IsNullOrWhiteSpace(value)
+        && value.Contains(appliedSearchText, StringComparison.OrdinalIgnoreCase);
+}

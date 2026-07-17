@@ -5,7 +5,7 @@ namespace BookNThings.Infrastructure.Configuration;
 
 public sealed class LocalJsonStorageSettingsService : ILocalJsonStorageSettings
 {
-    private static readonly string[] StorageFileNames = ["books.json", "games.json", "show.json"];
+    private static readonly string[] StorageFileNames = ["books.json", "games.json", "movies.json", "show.json"];
     private static readonly JsonSerializerOptions SerializerOptions = new(JsonSerializerDefaults.Web)
     {
         WriteIndented = true

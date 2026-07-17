@@ -25,7 +25,7 @@ public class LocalJsonStorageSettingsServiceTests
 
             service.DataDirectory.Should().Be(Path.GetFullPath(targetDirectory));
 
-            foreach (var fileName in new[] { "books.json", "games.json", "show.json" })
+            foreach (var fileName in new[] { "books.json", "games.json", "movies.json", "show.json" })
             {
                 var filePath = Path.Combine(targetDirectory, fileName);
                 File.Exists(filePath).Should().BeTrue();
@@ -63,7 +63,7 @@ public class LocalJsonStorageSettingsServiceTests
             service.DataDirectory.Should().Be(Path.GetFullPath(defaultDirectory));
             File.Exists(settingsFilePath).Should().BeFalse();
 
-            foreach (var fileName in new[] { "books.json", "games.json", "show.json" })
+            foreach (var fileName in new[] { "books.json", "games.json", "movies.json", "show.json" })
             {
                 var filePath = Path.Combine(defaultDirectory, fileName);
                 File.Exists(filePath).Should().BeTrue();

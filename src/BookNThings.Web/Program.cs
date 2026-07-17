@@ -29,22 +29,27 @@ builder.Services.Configure<OpenAiOptions>(builder.Configuration.GetSection(OpenA
 builder.Services.Configure<LocalBooksOptions>(options => options.FileName = "books.json");
 builder.Services.Configure<LocalGamesOptions>(options => options.FileName = "games.json");
 builder.Services.Configure<LocalShowsOptions>(options => options.FileName = "show.json");
+builder.Services.Configure<LocalMoviesOptions>(options => options.FileName = "movies.json");
 builder.Services.AddSingleton<LocalJsonStorageSettingsService>();
 builder.Services.AddSingleton<ILocalJsonStorageSettings>(provider => provider.GetRequiredService<LocalJsonStorageSettingsService>());
 
 builder.Services.AddScoped<BookSearchOrchestrator>();
 builder.Services.AddScoped<ShowSearchOrchestrator>();
 builder.Services.AddScoped<GameSearchOrchestrator>();
+builder.Services.AddScoped<MovieSearchOrchestrator>();
 builder.Services.AddScoped<ConnectionStatusService>();
 builder.Services.AddHttpClient<IBookSearchService, OpenAiBookSearchService>();
 builder.Services.AddHttpClient<IShowSearchService, OpenAiShowSearchService>();
 builder.Services.AddHttpClient<IGameSearchService, OpenAiGameSearchService>();
+builder.Services.AddHttpClient<IMovieSearchService, OpenAiMovieSearchService>();
 builder.Services.AddScoped<JsonBookStore>();
 builder.Services.AddScoped<JsonGameStore>();
 builder.Services.AddScoped<JsonShowStore>();
+builder.Services.AddScoped<JsonMovieStore>();
 builder.Services.AddScoped<IBookRepository, JsonBookRepository>();
 builder.Services.AddScoped<IGameRepository, JsonGameRepository>();
 builder.Services.AddScoped<IShowRepository, JsonShowRepository>();
+builder.Services.AddScoped<IMovieRepository, JsonMovieRepository>();
 
 var app = builder.Build();
 

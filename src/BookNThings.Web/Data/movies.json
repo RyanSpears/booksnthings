@@ -1,0 +1,310 @@
+[
+  {
+    "id": "movie-2026-020",
+    "title": "Star Wars: The Last Jedi",
+    "studio": "Lucasfilm Ltd.",
+    "releasedDate": "2017-12-13T00:00:00Z",
+    "dateWatched": "2026-05-17T00:00:00Z",
+    "rating": 91,
+    "genres": [
+      "Action",
+      "Adventure",
+      "Science Fiction"
+    ],
+    "director": "Rian Johnson",
+    "createdAt": "2026-05-17T00:00:00Z"
+  },
+  {
+    "id": "movie-2026-019",
+    "title": "Star Wars: The Rise of Skywalker",
+    "studio": "Lucasfilm Ltd., Bad Robot Productions",
+    "releasedDate": "2019-12-20T00:00:00Z",
+    "dateWatched": "2026-05-10T00:00:00Z",
+    "rating": 51,
+    "genres": [
+      "Action",
+      "Adventure",
+      "Science Fiction"
+    ],
+    "director": "J.J. Abrams",
+    "createdAt": "2026-05-10T00:00:00Z"
+  },
+  {
+    "id": "movie-2026-018",
+    "title": "Casino Royale",
+    "studio": "Metro-Goldwyn-Mayer, Sony Pictures Entertainment, Eon Productions Ltd.",
+    "releasedDate": "2006-11-17T00:00:00Z",
+    "dateWatched": "2026-05-03T00:00:00Z",
+    "rating": 95,
+    "genres": [
+      "Action",
+      "Adventure",
+      "Mystery",
+      "Thriller"
+    ],
+    "director": "Martin Campbell",
+    "createdAt": "2026-05-03T00:00:00Z"
+  },
+  {
+    "id": "movie-2026-017",
+    "title": "Quantum of Solace",
+    "studio": "Eon Productions Ltd.",
+    "releasedDate": "2008-11-14T00:00:00Z",
+    "dateWatched": "2026-04-26T00:00:00Z",
+    "rating": 63,
+    "genres": [
+      "Action",
+      "Adventure",
+      "Mystery",
+      "Thriller"
+    ],
+    "director": "Marc Forster",
+    "createdAt": "2026-04-26T00:00:00Z"
+  },
+  {
+    "id": "movie-2026-016",
+    "title": "Skyfall",
+    "studio": "Eon Productions Ltd.",
+    "releasedDate": "2012-11-09T00:00:00Z",
+    "dateWatched": "2026-04-19T00:00:00Z",
+    "rating": 92,
+    "genres": [
+      "Action",
+      "Adventure",
+      "Mystery",
+      "Thriller"
+    ],
+    "director": "Sam Mendes",
+    "createdAt": "2026-04-19T00:00:00Z"
+  },
+  {
+    "id": "movie-2026-015",
+    "title": "Spectre",
+    "studio": "Sony Pictures Entertainment, Columbia Pictures, Eon Productions Ltd., Danjaq Productions, MGM",
+    "releasedDate": "2015-11-06T00:00:00Z",
+    "dateWatched": "2026-04-12T00:00:00Z",
+    "rating": 63,
+    "genres": [
+      "Action",
+      "Adventure",
+      "Mystery",
+      "Thriller"
+    ],
+    "director": "Sam Mendes",
+    "createdAt": "2026-04-12T00:00:00Z"
+  },
+  {
+    "id": "movie-2026-014",
+    "title": "Hoppers",
+    "studio": "Pixar Animation Studios, Walt Disney Pictures",
+    "releasedDate": "2026-03-06T00:00:00Z",
+    "dateWatched": "2026-04-05T00:00:00Z",
+    "rating": null,
+    "genres": [
+      "Adventure",
+      "Animation",
+      "Comedy"
+    ],
+    "director": "Daniel Chong",
+    "createdAt": "2026-04-05T00:00:00Z"
+  },
+  {
+    "id": "movie-2026-013",
+    "title": "The Terminator",
+    "studio": "Pacific Western",
+    "releasedDate": "1984-10-26T00:00:00Z",
+    "dateWatched": "2026-03-29T00:00:00Z",
+    "rating": 90,
+    "genres": [
+      "Science Fiction",
+      "Action",
+      "Thriller"
+    ],
+    "director": "James Cameron",
+    "createdAt": "2026-03-29T00:00:00Z"
+  },
+  {
+    "id": "movie-2026-012",
+    "title": "Platoon",
+    "studio": "Hemdale Film Corporation",
+    "releasedDate": "1986-12-19T00:00:00Z",
+    "dateWatched": "2026-03-22T00:00:00Z",
+    "rating": 89,
+    "genres": [
+      "War",
+      "Drama"
+    ],
+    "director": "Oliver Stone",
+    "createdAt": "2026-03-22T00:00:00Z"
+  },
+  {
+    "id": "movie-2026-011",
+    "title": "Giannis: The Marvelous Journey",
+    "studio": "Improbable Media, Words + Pictures",
+    "releasedDate": "2024-02-19T00:00:00Z",
+    "dateWatched": "2026-03-15T00:00:00Z",
+    "rating": 83,
+    "genres": [
+      "Documentary",
+      "Sports"
+    ],
+    "director": "Kristen Lappas",
+    "createdAt": "2026-03-15T00:00:00Z"
+  },
+  {
+    "id": "movie-2026-010",
+    "title": "The Battle of Long Tan Documentary",
+    "studio": "Red Dune Films, Animax Films",
+    "releasedDate": "2006-08-13T00:00:00Z",
+    "dateWatched": "2026-03-08T00:00:00Z",
+    "rating": 80,
+    "genres": [
+      "Documentary",
+      "History",
+      "War"
+    ],
+    "director": "Damien Lay",
+    "createdAt": "2026-03-08T00:00:00Z"
+  },
+  {
+    "id": "movie-2026-009",
+    "title": "Stephen Curry: Underrated",
+    "studio": "Proximity, A24, Apple Original Films, Unanimous Media",
+    "releasedDate": "2023-07-21T00:00:00Z",
+    "dateWatched": "2026-03-01T00:00:00Z",
+    "rating": 85,
+    "genres": [
+      "Documentary",
+      "Biography",
+      "Sports"
+    ],
+    "director": "Peter Nicks",
+    "createdAt": "2026-03-01T00:00:00Z"
+  },
+  {
+    "id": "movie-2026-008",
+    "title": "The Empire Strikes Back",
+    "studio": "Lucasfilm Ltd.",
+    "releasedDate": "1980-05-21T00:00:00Z",
+    "dateWatched": "2026-02-22T00:00:00Z",
+    "rating": 95,
+    "genres": [
+      "Action",
+      "Adventure",
+      "Fantasy",
+      "Science Fiction"
+    ],
+    "director": "Irvin Kershner",
+    "createdAt": "2026-02-22T00:00:00Z"
+  },
+  {
+    "id": "movie-2026-007",
+    "title": "The Deer Hunter",
+    "studio": "Universal Pictures",
+    "releasedDate": "1978-12-08T00:00:00Z",
+    "dateWatched": "2026-02-15T00:00:00Z",
+    "rating": 86,
+    "genres": [
+      "War",
+      "Drama"
+    ],
+    "director": "Michael Cimino",
+    "createdAt": "2026-02-15T00:00:00Z"
+  },
+  {
+    "id": "movie-2026-006",
+    "title": "Return of the Jedi",
+    "studio": "Lucasfilm Ltd.",
+    "releasedDate": "1983-05-25T00:00:00Z",
+    "dateWatched": "2026-02-08T00:00:00Z",
+    "rating": 83,
+    "genres": [
+      "Action",
+      "Adventure",
+      "Fantasy",
+      "Science Fiction"
+    ],
+    "director": "Richard Marquand",
+    "createdAt": "2026-02-08T00:00:00Z"
+  },
+  {
+    "id": "movie-2026-005",
+    "title": "No Country For Old Men",
+    "studio": "Miramax, Paramount Vantage, Scott Rudin Productions",
+    "releasedDate": "2007-11-21T00:00:00Z",
+    "dateWatched": "2026-02-01T00:00:00Z",
+    "rating": 93,
+    "genres": [
+      "Crime",
+      "Drama",
+      "Mystery",
+      "Thriller",
+      "Western"
+    ],
+    "director": "Joel Coen, Ethan Coen",
+    "createdAt": "2026-02-01T00:00:00Z"
+  },
+  {
+    "id": "movie-2026-004",
+    "title": "Star Wars: The Phantom Menace",
+    "studio": "Lucasfilm Ltd.",
+    "releasedDate": "1999-05-19T00:00:00Z",
+    "dateWatched": "2026-01-25T00:00:00Z",
+    "rating": 52,
+    "genres": [
+      "Action",
+      "Adventure",
+      "Fantasy",
+      "Science Fiction"
+    ],
+    "director": "George Lucas",
+    "createdAt": "2026-01-25T00:00:00Z"
+  },
+  {
+    "id": "movie-2026-003",
+    "title": "Star Wars: Attack of the Clones",
+    "studio": "Lucasfilm Ltd.",
+    "releasedDate": "2002-05-16T00:00:00Z",
+    "dateWatched": "2026-01-18T00:00:00Z",
+    "rating": 65,
+    "genres": [
+      "Action",
+      "Adventure",
+      "Fantasy",
+      "Science Fiction"
+    ],
+    "director": "George Lucas",
+    "createdAt": "2026-01-18T00:00:00Z"
+  },
+  {
+    "id": "movie-2026-002",
+    "title": "Star Wars: Revenge of the Sith",
+    "studio": "Lucasfilm Ltd.",
+    "releasedDate": "2005-05-19T00:00:00Z",
+    "dateWatched": "2026-01-11T00:00:00Z",
+    "rating": 79,
+    "genres": [
+      "Action",
+      "Adventure",
+      "Fantasy",
+      "Science Fiction"
+    ],
+    "director": "George Lucas",
+    "createdAt": "2026-01-11T00:00:00Z"
+  },
+  {
+    "id": "movie-2026-001",
+    "title": "Star Wars: The Force Awakens",
+    "studio": "Lucasfilm Ltd., Bad Robot Productions",
+    "releasedDate": "2015-12-18T00:00:00Z",
+    "dateWatched": "2026-01-04T00:00:00Z",
+    "rating": 93,
+    "genres": [
+      "Action",
+      "Adventure",
+      "Science Fiction"
+    ],
+    "director": "J.J. Abrams",
+    "createdAt": "2026-01-04T00:00:00Z"
+  }
+]
