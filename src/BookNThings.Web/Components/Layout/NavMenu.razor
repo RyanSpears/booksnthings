@@ -5,33 +5,85 @@
 <MudNavMenu Color="Color.Inherit" Bordered="false" Class="spurs-nav">
     <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
 
-    <div class="nav-section">
-        <div class="nav-section-title">Books</div>
-        <MudNavLink Href="search" Icon="@Icons.Material.Filled.Search">Search Books</MudNavLink>
-        <MudNavLink Href="currently-reading" Icon="@Icons.Material.Filled.AutoStories">Currently Reading</MudNavLink>
-        <MudNavLink Href="books-read" Icon="@Icons.Material.Filled.History">Books Read</MudNavLink>
+    <div class="nav-group">
+        <MudNavLink Class="nav-toggle-link" Icon="@Icons.Material.Filled.AutoStories" OnClick="@ToggleBooks">
+            <span class="nav-toggle-content">
+                <span class="nav-toggle-label">Books</span>
+                <MudIcon Icon="@(_booksExpanded ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)"
+                         Class="nav-toggle-chevron" />
+            </span>
+        </MudNavLink>
+        <MudCollapse Expanded="@_booksExpanded" Class="nav-collapse">
+            <div class="nav-child-list">
+                <MudNavLink Href="search" Icon="@Icons.Material.Filled.Search">Search Books</MudNavLink>
+                <MudNavLink Href="currently-reading" Icon="@Icons.Material.Filled.AutoStories">Currently Reading</MudNavLink>
+                <MudNavLink Href="books-read" Icon="@Icons.Material.Filled.History">Books Read</MudNavLink>
+            </div>
+        </MudCollapse>
     </div>
 
-    <div class="nav-section">
-        <div class="nav-section-title">Games</div>
-        <MudNavLink Href="search-games" Icon="@Icons.Material.Filled.Gamepad">Search Games</MudNavLink>
-        <MudNavLink Href="currently-playing" Icon="@Icons.Material.Filled.VideogameAsset">Currently Playing</MudNavLink>
-        <MudNavLink Href="games-played" Icon="@Icons.Material.Filled.SportsEsports">Games Played</MudNavLink>
+    <div class="nav-group">
+        <MudNavLink Class="nav-toggle-link" Icon="@Icons.Material.Filled.SportsEsports" OnClick="@ToggleGames">
+            <span class="nav-toggle-content">
+                <span class="nav-toggle-label">Games</span>
+                <MudIcon Icon="@(_gamesExpanded ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)"
+                         Class="nav-toggle-chevron" />
+            </span>
+        </MudNavLink>
+        <MudCollapse Expanded="@_gamesExpanded" Class="nav-collapse">
+            <div class="nav-child-list">
+                <MudNavLink Href="search-games" Icon="@Icons.Material.Filled.Gamepad">Search Games</MudNavLink>
+                <MudNavLink Href="currently-playing" Icon="@Icons.Material.Filled.VideogameAsset">Currently Playing</MudNavLink>
+                <MudNavLink Href="games-played" Icon="@Icons.Material.Filled.SportsEsports">Games Played</MudNavLink>
+            </div>
+        </MudCollapse>
     </div>
 
-    <div class="nav-section">
-        <div class="nav-section-title">Movies</div>
-        <MudNavLink Href="search-movies" Icon="@Icons.Material.Filled.Search">Search Movies</MudNavLink>
-        <MudNavLink Href="currently-watching-movies" Icon="@Icons.Material.Filled.OndemandVideo">Currently Watching</MudNavLink>
-        <MudNavLink Href="movies-watched" Icon="@Icons.Material.Filled.Theaters">Movies Watched</MudNavLink>
+    <div class="nav-group">
+        <MudNavLink Class="nav-toggle-link" Icon="@Icons.Material.Filled.Movie" OnClick="@ToggleMovies">
+            <span class="nav-toggle-content">
+                <span class="nav-toggle-label">Movies</span>
+                <MudIcon Icon="@(_moviesExpanded ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)"
+                         Class="nav-toggle-chevron" />
+            </span>
+        </MudNavLink>
+        <MudCollapse Expanded="@_moviesExpanded" Class="nav-collapse">
+            <div class="nav-child-list">
+                <MudNavLink Href="search-movies" Icon="@Icons.Material.Filled.Search">Search Movies</MudNavLink>
+                <MudNavLink Href="currently-watching-movies" Icon="@Icons.Material.Filled.OndemandVideo">Currently Watching</MudNavLink>
+                <MudNavLink Href="movies-watched" Icon="@Icons.Material.Filled.Theaters">Movies Watched</MudNavLink>
+            </div>
+        </MudCollapse>
     </div>
 
-    <div class="nav-section">
-        <div class="nav-section-title">Shows</div>
-        <MudNavLink Href="search-shows" Icon="@Icons.Material.Filled.Search">Search Shows</MudNavLink>
-        <MudNavLink Href="currently-watching" Icon="@Icons.Material.Filled.LiveTv">Currently Watching</MudNavLink>
-        <MudNavLink Href="shows-watched" Icon="@Icons.Material.Filled.LiveTv">Shows Watched</MudNavLink>
+    <div class="nav-group">
+        <MudNavLink Class="nav-toggle-link" Icon="@Icons.Material.Filled.LiveTv" OnClick="@ToggleShows">
+            <span class="nav-toggle-content">
+                <span class="nav-toggle-label">Shows</span>
+                <MudIcon Icon="@(_showsExpanded ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)"
+                         Class="nav-toggle-chevron" />
+            </span>
+        </MudNavLink>
+        <MudCollapse Expanded="@_showsExpanded" Class="nav-collapse">
+            <div class="nav-child-list">
+                <MudNavLink Href="search-shows" Icon="@Icons.Material.Filled.Search">Search Shows</MudNavLink>
+                <MudNavLink Href="currently-watching" Icon="@Icons.Material.Filled.LiveTv">Currently Watching</MudNavLink>
+                <MudNavLink Href="shows-watched" Icon="@Icons.Material.Filled.LiveTv">Shows Watched</MudNavLink>
+            </div>
+        </MudCollapse>
     </div>
 
     <MudNavLink Href="settings" Icon="@Icons.Material.Filled.Settings">Settings</MudNavLink>
 </MudNavMenu>
+
+@code {
+    private bool _booksExpanded;
+    private bool _gamesExpanded;
+    private bool _moviesExpanded;
+    private bool _showsExpanded;
+
+    private void ToggleBooks() => _booksExpanded = !_booksExpanded;
+    private void ToggleGames() => _gamesExpanded = !_gamesExpanded;
+    private void ToggleMovies() => _moviesExpanded = !_moviesExpanded;
+    private void ToggleShows() => _showsExpanded = !_showsExpanded;
+}
