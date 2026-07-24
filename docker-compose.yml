@@ -5,8 +5,11 @@ services:
       dockerfile: Dockerfile
     container_name: booknthings
     ports:
-      - "8080:8080"
+      - "${BOOKNTHINGS_PORT:-8080}:8080"
+    volumes:
+      - "${BOOKNTHINGS_HOST_DATA_DIRECTORY:-/Users/ryanspears/OneDrive/Dev/Projects/BooksNThings/Data}:${BOOKNTHINGS_CONTAINER_DATA_DIRECTORY:-/data}"
     environment:
-      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
       OpenAI__ApiKey: ${OPENAI_API_KEY}
-      OpenAI__Model: gpt-4.1-mini
+      OpenAI__Model: ${OPENAI_MODEL:-gpt-4.1-mini}
+      LocalJsonStorage__DefaultDataDirectory: ${BOOKNTHINGS_CONTAINER_DATA_DIRECTORY:-/data}

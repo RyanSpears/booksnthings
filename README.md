@@ -56,6 +56,11 @@ Docker Compose reads:
 
 ```text
 OPENAI_API_KEY
+OPENAI_MODEL
+ASPNETCORE_ENVIRONMENT
+BOOKNTHINGS_PORT
+BOOKNTHINGS_HOST_DATA_DIRECTORY
+BOOKNTHINGS_CONTAINER_DATA_DIRECTORY
 ```
 
 Copy `.env.example` to `.env` and fill in real values.
@@ -76,6 +81,18 @@ Open the displayed local URL and use:
 
 ## Docker
 
+The container stores JSON data in a host-mounted folder instead of inside the image.
+By default the compose file maps `/Users/ryanspears/OneDrive/Dev/Projects/BooksNThings/Data`
+on your machine to `/data` in the container.
+The app is configured to use the container path from `BOOKNTHINGS_CONTAINER_DATA_DIRECTORY`.
+
+Update `.env` if you want to change:
+
+- the host folder that gets mounted
+- the container folder the app sees
+- the published port
+- the ASP.NET Core environment
+
 ```bash
 docker compose up --build
 ```
@@ -85,6 +102,10 @@ Then open:
 ```text
 http://localhost:8080
 ```
+
+If you want a different storage location, change the bind mount in `docker-compose.yml`
+or, preferably, update `BOOKNTHINGS_HOST_DATA_DIRECTORY` and
+`BOOKNTHINGS_CONTAINER_DATA_DIRECTORY` in `.env`.
 
 ## Testing
 
