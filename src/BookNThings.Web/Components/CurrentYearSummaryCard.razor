@@ -1,0 +1,63 @@
+<MudPaper Class="panel yearly-summary-row" Elevation="0">
+    <div class="yearly-summary-main">
+        <div class="yearly-summary-header">
+            <div>
+                <MudText Typo="Typo.h6">@Title</MudText>
+                <MudText Typo="Typo.caption" Class="muted-text">@Year</MudText>
+            </div>
+        </div>
+
+        <div class="yearly-summary-stats" style="@StatsGridStyle">
+            @foreach (var stat in Stats)
+            {
+                <div class="stat-card">
+                    <div class="stat-label">@stat.Label</div>
+                    <div class="stat-value">@stat.Value</div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="yearly-summary-tags">
+        @if (Tags.Count == 0)
+        {
+            <MudText Class="muted-text">@EmptyTagsMessage</MudText>
+        }
+        else
+        {
+            <div class="tag-badge-list" aria-label="@TagListAriaLabel">
+                @foreach (var tag in Tags)
+                {
+                    <span class="tag-badge">
+                        <span>@tag.Tag</span>
+                        <b>@tag.Count.ToString("N0")</b>
+                    </span>
+                }
+            </div>
+        }
+    </div>
+</MudPaper>
+
+@code {
+    [Parameter, EditorRequired]
+    public string Title { get; set; } = string.Empty;
+
+    [Parameter]
+    public int Year { get; set; } = DateTime.Today.Year;
+
+    [Parameter]
+    public IReadOnlyList<SummaryStat> Stats { get; set; } = [];
+
+    [Parameter]
+    public IReadOnlyList<SummaryTag> Tags { get; set; } = [];
+
+    [Parameter]
+    public string EmptyTagsMessage { get; set; } = "No genres have been added yet.";
+
+    [Parameter]
+    public string TagListAriaLabel { get; set; } = "Items by genre";
+
+    private string StatsGridStyle => Stats.Count == 0
+        ? ""
+        : $"grid-template-columns: repeat({Stats.Count}, minmax(0, 1fr));";
+}

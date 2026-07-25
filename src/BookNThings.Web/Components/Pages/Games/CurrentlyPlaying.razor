@@ -32,18 +32,20 @@
     else
     {
         <MudPaper Class="panel search-panel" Elevation="0">
-            <MudTextField @bind-Value="searchText"
-                          Placeholder="Search currently playing"
-                          Variant="Variant.Outlined"
-                          Adornment="Adornment.Start"
-                          AdornmentIcon="@Icons.Material.Filled.Search"
-                          Immediate="false" />
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ApplySearch" StartIcon="@Icons.Material.Filled.Search">
-                Search
-            </MudButton>
-            <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="ClearSearch" StartIcon="@Icons.Material.Filled.Clear">
-                Clear
-            </MudButton>
+            <form @onsubmit="ApplySearch" @onsubmit:preventDefault="true">
+                <MudTextField @bind-Value="searchText"
+                              Placeholder="Search currently playing"
+                              Variant="Variant.Outlined"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Search"
+                              Immediate="false" />
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" ButtonType="ButtonType.Submit" StartIcon="@Icons.Material.Filled.Search">
+                    Search
+                </MudButton>
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" ButtonType="ButtonType.Button" OnClick="ClearSearch" StartIcon="@Icons.Material.Filled.Clear">
+                    Clear
+                </MudButton>
+            </form>
         </MudPaper>
 
         <MudPaper Class="panel table-panel" Elevation="0">

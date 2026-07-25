@@ -11,30 +11,32 @@
     <MudText Class="muted-text">Search for games and return them in a shape ready for your local JSON records.</MudText>
 
     <MudPaper Class="panel" Elevation="0">
-        <MudStack Spacing="2">
-            <MudTextField @bind-Value="query"
-                          Label="Search query"
-                          Placeholder="Try: story-driven sci-fi RPGs from the 2010s"
-                          Variant="Variant.Outlined"
-                          Disabled="@isSearching"
-                          Immediate="true" />
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SearchAsync" Disabled="@isSearching" StartIcon="@Icons.Material.Filled.Search">
-                @if (isSearching)
-                {
-                    <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="button-spinner" />
-                    <span>Searching</span>
-                }
-                else
-                {
-                    <span>Search</span>
-                }
-            </MudButton>
+        <form @onsubmit="SearchAsync" @onsubmit:preventDefault="true">
+            <MudStack Spacing="2">
+                <MudTextField @bind-Value="query"
+                              Label="Search query"
+                              Placeholder="Try: story-driven sci-fi RPGs from the 2010s"
+                              Variant="Variant.Outlined"
+                              Disabled="@isSearching"
+                              Immediate="true" />
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" ButtonType="ButtonType.Submit" Disabled="@isSearching" StartIcon="@Icons.Material.Filled.Search">
+                    @if (isSearching)
+                    {
+                        <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="button-spinner" />
+                        <span>Searching</span>
+                    }
+                    else
+                    {
+                        <span>Search</span>
+                    }
+                </MudButton>
 
-            @if (!string.IsNullOrWhiteSpace(errorMessage))
-            {
-                <MudAlert Severity="Severity.Error" Variant="Variant.Outlined">@errorMessage</MudAlert>
-            }
-        </MudStack>
+                @if (!string.IsNullOrWhiteSpace(errorMessage))
+                {
+                    <MudAlert Severity="Severity.Error" Variant="Variant.Outlined">@errorMessage</MudAlert>
+                }
+            </MudStack>
+        </form>
     </MudPaper>
 
     @if (results.Count > 0)

@@ -1,15 +1,19 @@
+@using Microsoft.AspNetCore.Components.Web
 @page "/"
 @rendermode InteractiveServer
 @inject IBookRepository Repository
+@inject IGameRepository GameRepository
+@inject IMovieRepository MovieRepository
+@inject IShowRepository ShowRepository
 @inject ILogger<Home> Logger
 
 <PageTitle>Dashboard | BookNThings</PageTitle>
 
-<MudStack Spacing="3">
+<MudStack Spacing="2">
     <MudPaper Class="hero-panel" Elevation="0">
         <div>
             <MudText Typo="Typo.overline" Class="eyebrow">Local-first library tracker</MudText>
-            <MudText Typo="Typo.h4" Class="hero-title">Find books with natural language, save the good ones, and keep your reading list close.</MudText>
+            <MudText Typo="Typo.h4" Class="hero-title">Track your year across books, games, movies, and TV shows in one place.</MudText>
             <MudText Typo="Typo.body1" Class="muted-text">BookNThings uses OpenAI structured outputs for candidate discovery and local JSON files for persistence across books, games, movies, and shows.</MudText>
             <MudStack Row="true" Spacing="2" Class="action-row">
                 <MudButton Href="search" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Search">Search Books</MudButton>
@@ -38,47 +42,203 @@
     {
         <MudPaper Class="panel loading-panel" Elevation="0">
             <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
-            <MudText>Loading reading stats</MudText>
-        </MudPaper>
-    }
-    else if (!string.IsNullOrWhiteSpace(errorMessage))
-    {
-        <MudPaper Class="panel" Elevation="0">
-            <MudAlert Severity="Severity.Error" Variant="Variant.Outlined">@errorMessage</MudAlert>
-        </MudPaper>
-    }
-    else if (booksRead.Count == 0)
-    {
-        <MudPaper Class="panel" Elevation="0">
-            <MudText Class="muted-text">Books you read will be summarized here by year.</MudText>
+            <MudText>Loading dashboard stats</MudText>
         </MudPaper>
     }
     else
     {
-        <YearlyReadingSummaries Books="@booksRead" />
+        @if (loadErrors.Count > 0)
+        {
+            <MudPaper Class="panel" Elevation="0">
+                <MudAlert Severity="Severity.Error" Variant="Variant.Outlined">@string.Join(" ", loadErrors)</MudAlert>
+            </MudPaper>
+        }
+
+        <MudText Typo="Typo.h5">This year at a glance</MudText>
+
+        <MudStack Spacing="2" Class="yearly-summary-stack">
+            <CurrentYearSummaryCard Title="Books"
+                                    Year="@currentYear"
+                                    Stats="@BookStats"
+                                    Tags="@BookTags"
+                                    EmptyTagsMessage="No book genres have been added this year yet."
+                                    TagListAriaLabel="Books by genre" />
+            <CurrentYearSummaryCard Title="Games"
+                                    Year="@currentYear"
+                                    Stats="@GameStats"
+                                    Tags="@GameTags"
+                                    EmptyTagsMessage="No game genres have been added this year yet."
+                                    TagListAriaLabel="Games by genre" />
+            <CurrentYearSummaryCard Title="Movies"
+                                    Year="@currentYear"
+                                    Stats="@MovieStats"
+                                    Tags="@MovieTags"
+                                    EmptyTagsMessage="No movie genres have been added this year yet."
+                                    TagListAriaLabel="Movies by genre" />
+            <CurrentYearSummaryCard Title="TV Shows"
+                                    Year="@currentYear"
+                                    Stats="@ShowStats"
+                                    Tags="@ShowTags"
+                                    EmptyTagsMessage="No TV show genres have been added this year yet."
+                                    TagListAriaLabel="TV shows by genre" />
+        </MudStack>
     }
 </MudStack>
 
 @code {
     private bool isLoading = true;
-    private string? errorMessage;
+    private readonly object loadErrorLock = new();
+    private readonly List<string> loadErrors = [];
+    private readonly int currentYear = DateTime.Today.Year;
+
     private List<Book> booksRead = [];
+    private List<Game> gamesPlayed = [];
+    private List<Movie> moviesWatched = [];
+    private List<Show> showsWatched = [];
 
     protected override async Task OnInitializedAsync()
     {
+        await Task.WhenAll(
+            LoadBooksAsync(),
+            LoadGamesAsync(),
+            LoadMoviesAsync(),
+            LoadShowsAsync());
+
+        isLoading = false;
+    }
+
+    private IReadOnlyList<SummaryStat> BookStats
+    {
+        get
+        {
+            var booksThisYear = CurrentYearBooks;
+            var pageCount = booksThisYear.Sum(book => Math.Max(0, book.Pages));
+
+            return
+            [
+                new SummaryStat("Books read", booksThisYear.Count().ToString("N0")),
+                new SummaryStat("Pages read", pageCount.ToString("N0")),
+                new SummaryStat("Pages per day", CalculatePagesPerDay(pageCount).ToString("N1"))
+            ];
+        }
+    }
+
+    private IReadOnlyList<SummaryTag> BookTags => BuildTags(CurrentYearBooks.SelectMany(book => book.Genres));
+
+    private IReadOnlyList<SummaryStat> GameStats =>
+        [
+            new SummaryStat("Games played", CurrentYearGames.Count().ToString("N0")),
+            new SummaryStat("Average rating", CalculateAverageRating(CurrentYearGames.Select(game => game.Rating)).ToString("0.0"))
+        ];
+
+    private IReadOnlyList<SummaryTag> GameTags => BuildTags(CurrentYearGames.SelectMany(game => game.Genres));
+
+    private IReadOnlyList<SummaryStat> MovieStats =>
+        [
+            new SummaryStat("Movies watched", CurrentYearMovies.Count().ToString("N0")),
+            new SummaryStat("Average rating", CalculateAverageRating(CurrentYearMovies.Select(movie => movie.Rating)).ToString("0.0"))
+        ];
+
+    private IReadOnlyList<SummaryTag> MovieTags => BuildTags(CurrentYearMovies.SelectMany(movie => movie.Genres));
+
+    private IReadOnlyList<SummaryStat> ShowStats =>
+        [
+            new SummaryStat("TV shows watched", CurrentYearShows.Count().ToString("N0")),
+            new SummaryStat("Average rating", CalculateAverageRating(CurrentYearShows.Select(show => show.Rating)).ToString("0.0"))
+        ];
+
+    private IReadOnlyList<SummaryTag> ShowTags => BuildTags(CurrentYearShows.SelectMany(show => show.Genres));
+
+    private IEnumerable<Book> CurrentYearBooks =>
+        booksRead.Where(book => book.DateRead.HasValue && book.DateRead.Value.Year == currentYear);
+
+    private IEnumerable<Game> CurrentYearGames =>
+        gamesPlayed.Where(game => game.DatePlayed.HasValue && game.DatePlayed.Value.Year == currentYear);
+
+    private IEnumerable<Movie> CurrentYearMovies =>
+        moviesWatched.Where(movie => movie.DateWatched.HasValue && movie.DateWatched.Value.Year == currentYear);
+
+    private IEnumerable<Show> CurrentYearShows =>
+        showsWatched.Where(show => show.DateWatched.HasValue && show.DateWatched.Value.Year == currentYear);
+
+    private async Task LoadBooksAsync()
+    {
         try
         {
-            booksRead = (await Repository.GetAllAsync(CancellationToken.None))
-                .ToList();
+            booksRead = (await Repository.GetAllAsync(CancellationToken.None)).ToList();
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Loading dashboard reading stats failed.");
-            errorMessage = ex.Message;
+            Logger.LogError(ex, "Loading dashboard book stats failed.");
+            AddError(ex.Message);
         }
-        finally
+    }
+
+    private async Task LoadGamesAsync()
+    {
+        try
         {
-            isLoading = false;
+            gamesPlayed = (await GameRepository.GetAllAsync(CancellationToken.None)).ToList();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Loading dashboard game stats failed.");
+            AddError(ex.Message);
+        }
+    }
+
+    private async Task LoadMoviesAsync()
+    {
+        try
+        {
+            moviesWatched = (await MovieRepository.GetAllAsync(CancellationToken.None)).ToList();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Loading dashboard movie stats failed.");
+            AddError(ex.Message);
+        }
+    }
+
+    private async Task LoadShowsAsync()
+    {
+        try
+        {
+            showsWatched = (await ShowRepository.GetAllAsync(CancellationToken.None)).ToList();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Loading dashboard TV show stats failed.");
+            AddError(ex.Message);
+        }
+    }
+
+    private decimal CalculatePagesPerDay(int pageCount)
+    {
+        var daysInPeriod = DateTime.Today.DayOfYear;
+        return daysInPeriod == 0 ? 0 : Math.Round(pageCount / (decimal)daysInPeriod, 1);
+    }
+
+    private static decimal CalculateAverageRating(IEnumerable<decimal?> ratings)
+    {
+        var values = ratings.Where(value => value.HasValue).Select(value => value!.Value).ToList();
+        return values.Count == 0 ? 0 : Math.Round(values.Average(), 1);
+    }
+
+    private static IReadOnlyList<SummaryTag> BuildTags(IEnumerable<string> tags) =>
+        tags
+            .Where(tag => !string.IsNullOrWhiteSpace(tag))
+            .GroupBy(tag => tag.Trim(), StringComparer.OrdinalIgnoreCase)
+            .Select(group => new SummaryTag(group.First(), group.Count()))
+            .OrderByDescending(item => item.Count)
+            .ThenBy(item => item.Tag)
+            .ToList();
+
+    private void AddError(string message)
+    {
+        lock (loadErrorLock)
+        {
+            loadErrors.Add(message);
         }
     }
 }

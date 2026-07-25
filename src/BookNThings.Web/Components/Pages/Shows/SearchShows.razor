@@ -11,35 +11,37 @@
     <MudText Class="muted-text">Search for TV show seasons and save them as currently watching or watched.</MudText>
 
     <MudPaper Class="panel" Elevation="0">
-        <MudStack Spacing="2">
-            <MudTextField @bind-Value="query"
-                          Label="Search query"
-                          Placeholder="Try: prestige sci-fi shows with multiple seasons"
-                          Variant="Variant.Outlined"
-                          Disabled="@isSearching"
-                          Immediate="true" />
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SearchAsync" Disabled="@isSearching" StartIcon="@Icons.Material.Filled.Search">
-                @if (isSearching)
-                {
-                    <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="button-spinner" />
-                    <span>Searching</span>
-                }
-                else
-                {
-                    <span>Search</span>
-                }
-            </MudButton>
+        <form @onsubmit="SearchAsync" @onsubmit:preventDefault="true">
+            <MudStack Spacing="2">
+                <MudTextField @bind-Value="query"
+                              Label="Search query"
+                              Placeholder="Try: prestige sci-fi shows with multiple seasons"
+                              Variant="Variant.Outlined"
+                              Disabled="@isSearching"
+                              Immediate="true" />
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" ButtonType="ButtonType.Submit" Disabled="@isSearching" StartIcon="@Icons.Material.Filled.Search">
+                    @if (isSearching)
+                    {
+                        <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="button-spinner" />
+                        <span>Searching</span>
+                    }
+                    else
+                    {
+                        <span>Search</span>
+                    }
+                </MudButton>
 
-            @if (!string.IsNullOrWhiteSpace(errorMessage))
-            {
-                <MudAlert Severity="Severity.Error" Variant="Variant.Outlined">@errorMessage</MudAlert>
-            }
+                @if (!string.IsNullOrWhiteSpace(errorMessage))
+                {
+                    <MudAlert Severity="Severity.Error" Variant="Variant.Outlined">@errorMessage</MudAlert>
+                }
 
-            @if (!string.IsNullOrWhiteSpace(successMessage))
-            {
-                <MudAlert Severity="Severity.Success" Variant="Variant.Outlined">@successMessage</MudAlert>
-            }
-        </MudStack>
+                @if (!string.IsNullOrWhiteSpace(successMessage))
+                {
+                    <MudAlert Severity="Severity.Success" Variant="Variant.Outlined">@successMessage</MudAlert>
+                }
+            </MudStack>
+        </form>
     </MudPaper>
 
     @if (results.Count > 0)
