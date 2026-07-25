@@ -1,0 +1,66 @@
+@page "/game-stats"
+@rendermode InteractiveServer
+@inject IGameRepository Repository
+@inject ILogger<GameStats> Logger
+
+<PageTitle>Game Stats | BookNThings</PageTitle>
+
+<MudStack Spacing="3">
+    <MudText Typo="Typo.h3">Game Stats</MudText>
+
+    @if (isLoading)
+    {
+        <MudPaper Class="panel loading-panel" Elevation="0">
+            <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+            <MudText>Loading game stats</MudText>
+        </MudPaper>
+    }
+    else if (!string.IsNullOrWhiteSpace(errorMessage))
+    {
+        <MudPaper Class="panel" Elevation="0">
+            <MudAlert Severity="Severity.Error" Variant="Variant.Outlined">@errorMessage</MudAlert>
+        </MudPaper>
+    }
+    else if (gamesPlayed.Count == 0)
+    {
+        <MudPaper Class="panel" Elevation="0">
+            <MudText Class="muted-text">Games you play will be summarized here by year.</MudText>
+        </MudPaper>
+    }
+    else
+    {
+        <YearlyMediaSummaries Items="@gamesPlayed"
+                              DateSelector="@(game => game.DatePlayed)"
+                              RatingSelector="@(game => game.Rating)"
+                              TagsSelector="@(game => game.Genres)"
+                              CountLabel="Games played"
+                              RatingLabel="Average rating"
+                              EmptyTagsMessage="No genres have been added to these games yet."
+                              TagListAriaLabel="Games by genre" />
+    }
+</MudStack>
+
+@code {
+    private bool isLoading = true;
+    private string? errorMessage;
+    private List<Game> gamesPlayed = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            gamesPlayed = (await Repository.GetAllAsync(CancellationToken.None))
+                .Where(game => game.DatePlayed.HasValue)
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Loading game stats failed.");
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

@@ -1,0 +1,58 @@
+@page "/book-stats"
+@rendermode InteractiveServer
+@inject IBookRepository Repository
+@inject ILogger<BookStats> Logger
+
+<PageTitle>Book Stats | BookNThings</PageTitle>
+
+<MudStack Spacing="3">
+    <MudText Typo="Typo.h3">Book Stats</MudText>
+
+    @if (isLoading)
+    {
+        <MudPaper Class="panel loading-panel" Elevation="0">
+            <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+            <MudText>Loading book stats</MudText>
+        </MudPaper>
+    }
+    else if (!string.IsNullOrWhiteSpace(errorMessage))
+    {
+        <MudPaper Class="panel" Elevation="0">
+            <MudAlert Severity="Severity.Error" Variant="Variant.Outlined">@errorMessage</MudAlert>
+        </MudPaper>
+    }
+    else if (booksRead.Count == 0)
+    {
+        <MudPaper Class="panel" Elevation="0">
+            <MudText Class="muted-text">Books you read will be summarized here by year.</MudText>
+        </MudPaper>
+    }
+    else
+    {
+        <YearlyReadingSummaries Books="@booksRead" />
+    }
+</MudStack>
+
+@code {
+    private bool isLoading = true;
+    private string? errorMessage;
+    private List<Book> booksRead = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            booksRead = (await Repository.GetAllAsync(CancellationToken.None))
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Loading book stats failed.");
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

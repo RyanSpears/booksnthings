@@ -18,6 +18,7 @@
                 <MudNavLink Href="search" Icon="@Icons.Material.Filled.Search">Search Books</MudNavLink>
                 <MudNavLink Href="currently-reading" Icon="@Icons.Material.Filled.AutoStories">Currently Reading</MudNavLink>
                 <MudNavLink Href="books-read" Icon="@Icons.Material.Filled.History">Books Read</MudNavLink>
+                <MudNavLink Href="book-stats" Icon="@Icons.Material.Filled.BarChart">Book Stats</MudNavLink>
             </div>
         </MudCollapse>
     </div>
@@ -35,6 +36,7 @@
                 <MudNavLink Href="search-games" Icon="@Icons.Material.Filled.Gamepad">Search Games</MudNavLink>
                 <MudNavLink Href="currently-playing" Icon="@Icons.Material.Filled.VideogameAsset">Currently Playing</MudNavLink>
                 <MudNavLink Href="games-played" Icon="@Icons.Material.Filled.SportsEsports">Games Played</MudNavLink>
+                <MudNavLink Href="game-stats" Icon="@Icons.Material.Filled.BarChart">Game Stats</MudNavLink>
             </div>
         </MudCollapse>
     </div>
@@ -52,6 +54,7 @@
                 <MudNavLink Href="search-movies" Icon="@Icons.Material.Filled.Search">Search Movies</MudNavLink>
                 <MudNavLink Href="currently-watching-movies" Icon="@Icons.Material.Filled.OndemandVideo">Currently Watching</MudNavLink>
                 <MudNavLink Href="movies-watched" Icon="@Icons.Material.Filled.Theaters">Movies Watched</MudNavLink>
+                <MudNavLink Href="movie-stats" Icon="@Icons.Material.Filled.BarChart">Movie Stats</MudNavLink>
             </div>
         </MudCollapse>
     </div>
@@ -59,16 +62,17 @@
     <div class="nav-group">
         <MudNavLink Class="nav-toggle-link" Icon="@Icons.Material.Filled.LiveTv" OnClick="@ToggleShows">
             <span class="nav-toggle-content">
-                <span class="nav-toggle-label">Shows</span>
+                <span class="nav-toggle-label">TV Shows</span>
                 <MudIcon Icon="@(_showsExpanded ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)"
                          Class="nav-toggle-chevron" />
             </span>
         </MudNavLink>
         <MudCollapse Expanded="@_showsExpanded" Class="nav-collapse">
             <div class="nav-child-list">
-                <MudNavLink Href="search-shows" Icon="@Icons.Material.Filled.Search">Search Shows</MudNavLink>
+                <MudNavLink Href="search-shows" Icon="@Icons.Material.Filled.Search">Search TV Shows</MudNavLink>
                 <MudNavLink Href="currently-watching" Icon="@Icons.Material.Filled.LiveTv">Currently Watching</MudNavLink>
-                <MudNavLink Href="shows-watched" Icon="@Icons.Material.Filled.LiveTv">Shows Watched</MudNavLink>
+                <MudNavLink Href="shows-watched" Icon="@Icons.Material.Filled.LiveTv">TV Shows Watched</MudNavLink>
+                <MudNavLink Href="tv-show-stats" Icon="@Icons.Material.Filled.BarChart">TV Show Stats</MudNavLink>
             </div>
         </MudCollapse>
     </div>

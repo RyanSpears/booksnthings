@@ -1,0 +1,109 @@
+@typeparam TItem
+
+<MudStack Spacing="2" Class="yearly-summary-list">
+    @foreach (var summary in Summaries)
+    {
+        <MudPaper Class="panel yearly-summary-row" Elevation="0">
+            <div class="yearly-summary-main">
+                <div class="yearly-summary-header">
+                    <MudText Typo="Typo.h6">@summary.Year</MudText>
+                </div>
+
+                <div class="yearly-summary-stats">
+                    <div class="stat-card">
+                        <div class="stat-label">@CountLabel</div>
+                        <div class="stat-value">@summary.ItemCount.ToString("N0")</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">@RatingLabel</div>
+                        <div class="stat-value">@summary.AverageRating.ToString("0.0")</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="yearly-summary-tags">
+                @if (summary.Tags.Count == 0)
+                {
+                    <MudText Class="muted-text">@EmptyTagsMessage</MudText>
+                }
+                else
+                {
+                    <div class="tag-badge-list" aria-label="@TagListAriaLabel">
+                        @foreach (var item in summary.Tags)
+                        {
+                            <span class="tag-badge">
+                                <span>@item.Tag</span>
+                                <b>@item.Count.ToString("N0")</b>
+                            </span>
+                        }
+                    </div>
+                }
+            </div>
+        </MudPaper>
+    }
+</MudStack>
+
+@code {
+    [Parameter]
+    public IReadOnlyList<TItem> Items { get; set; } = [];
+
+    [Parameter, EditorRequired]
+    public Func<TItem, DateTime?> DateSelector { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public Func<TItem, decimal?> RatingSelector { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public Func<TItem, IEnumerable<string>> TagsSelector { get; set; } = default!;
+
+    [Parameter]
+    public string CountLabel { get; set; } = "Items";
+
+    [Parameter]
+    public string RatingLabel { get; set; } = "Average rating";
+
+    [Parameter]
+    public string EmptyTagsMessage { get; set; } = "No genres have been added yet.";
+
+    [Parameter]
+    public string TagListAriaLabel { get; set; } = "Items by genre";
+
+    private IReadOnlyList<YearlySummary> Summaries =>
+        Items
+            .Where(item => DateSelector(item).HasValue)
+            .GroupBy(item => DateSelector(item)!.Value.Year)
+            .OrderByDescending(group => group.Key)
+            .Select(group =>
+            {
+                var items = group.ToList();
+                var ratings = items
+                    .Select(RatingSelector)
+                    .Where(value => value.HasValue)
+                    .Select(value => value!.Value)
+                    .ToList();
+
+                return new YearlySummary(
+                    group.Key,
+                    items.Count,
+                    ratings.Count == 0 ? 0 : Math.Round(ratings.Average(), 1),
+                    BuildTags(items));
+            })
+            .ToList();
+
+    private IReadOnlyList<TagCount> BuildTags(IEnumerable<TItem> items) =>
+        items
+            .SelectMany(item => TagsSelector(item).Where(tag => !string.IsNullOrWhiteSpace(tag)))
+            .GroupBy(tag => tag.Trim(), StringComparer.OrdinalIgnoreCase)
+            .Select(group => new TagCount(group.First(), group.Count()))
+            .OrderByDescending(item => item.Count)
+            .ThenBy(item => item.Tag)
+            .ToList();
+
+    private sealed record YearlySummary(
+        int Year,
+        int ItemCount,
+        decimal AverageRating,
+        IReadOnlyList<TagCount> Tags);
+
+    private sealed record TagCount(string Tag, int Count);
+}
