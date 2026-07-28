@@ -5,6 +5,7 @@ using BookNThings.Infrastructure.Configuration;
 using BookNThings.Infrastructure.Health;
 using BookNThings.Infrastructure.Local;
 using BookNThings.Infrastructure.OpenAi;
+using BookNThings.Infrastructure.TmDb;
 using BookNThings.Infrastructure.TvMaze;
 using Microsoft.AspNetCore.DataProtection;
 using MudBlazor.Services;
@@ -28,6 +29,7 @@ builder.Services.AddDataProtection()
 
 builder.Services.AddMudServices();
 builder.Services.Configure<OpenAiOptions>(builder.Configuration.GetSection(OpenAiOptions.SectionName));
+builder.Services.Configure<TmDbOptions>(builder.Configuration.GetSection(TmDbOptions.SectionName));
 builder.Services.Configure<LocalJsonStorageOptions>(builder.Configuration.GetSection(LocalJsonStorageOptions.SectionName));
 builder.Services.Configure<LocalBooksOptions>(options => options.FileName = "books.json");
 builder.Services.Configure<LocalGamesOptions>(options => options.FileName = "games.json");
@@ -56,8 +58,12 @@ builder.Services.AddHttpClient<IShowSearchService, TvMazeShowSearchService>(clie
 {
     client.BaseAddress = new Uri("https://api.tvmaze.com/");
 });
+builder.Services.AddHttpClient<OpenAiMovieSearchService>();
+builder.Services.AddHttpClient<IMovieSearchService, TmDbMovieSearchService>(client =>
+{
+    client.BaseAddress = new Uri("https://api.themoviedb.org/3/");
+});
 builder.Services.AddHttpClient<IGameSearchService, OpenAiGameSearchService>();
-builder.Services.AddHttpClient<IMovieSearchService, OpenAiMovieSearchService>();
 builder.Services.AddScoped<JsonBookStore>();
 builder.Services.AddScoped<JsonGameStore>();
 builder.Services.AddScoped<JsonShowStore>();

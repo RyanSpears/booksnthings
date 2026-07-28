@@ -28,6 +28,18 @@ $env:OpenAI__Model="gpt-4.1-mini"
 
 The OpenAI integration uses the Responses API with strict JSON schema structured outputs.
 
+## TMDb Setup
+
+Movies now search TMDb first and only fall back to OpenAI when TMDb cannot find a grounded match.
+
+Create a TMDb v4 read access token and configure:
+
+```powershell
+$env:TMDb__BearerToken="eyJ..."
+```
+
+TMDb is used as the source of truth for movie metadata, then the app maps the response into the local movie JSON shape.
+
 ## Environment Variables
 
 Local development:
@@ -35,6 +47,7 @@ Local development:
 ```text
 OpenAI__ApiKey
 OpenAI__Model
+TMDb__BearerToken
 ```
 
 ## User Secrets
