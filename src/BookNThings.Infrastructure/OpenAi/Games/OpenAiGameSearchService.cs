@@ -44,7 +44,19 @@ public sealed class OpenAiGameSearchService(
 
             if (response.IsSuccessStatusCode)
             {
-                return OpenAiGameResponseParser.Parse(ExtractStructuredOutput(content));
+                var parsed = OpenAiGameResponseParser.Parse(ExtractStructuredOutput(content));
+                var grounded = OpenAiSearchResultGrounding.FilterSpecificMatches(
+                    query.Trim(),
+                    parsed,
+                    game => game.Title,
+                    game => new[] { game.Title, game.Publisher, game.Studio, game.Developer, string.Join(" ", game.Genres) });
+
+                if (grounded.Count < parsed.Count)
+                {
+                    logger.LogWarning("Discarded {DiscardedCount} ungrounded game search result(s) for query {Query}.", parsed.Count - grounded.Count, query.Trim());
+                }
+
+                return grounded;
             }
 
             if (response.StatusCode is HttpStatusCode.TooManyRequests or HttpStatusCode.RequestTimeout ||
@@ -81,7 +93,7 @@ public sealed class OpenAiGameSearchService(
                 results = new
                 {
                     type = "array",
-                    minItems = 1,
+                    minItems = 0,
                     maxItems = 8,
                     items = new
                     {
@@ -125,7 +137,7 @@ public sealed class OpenAiGameSearchService(
                 new
                 {
                     role = "system",
-                    content = "Return candidate computer games that match the user query. Use known release data where possible. Include a Metacritic rating when known; otherwise return null. Also include a few relevant genres."
+                    content = "Return only computer games that are strongly grounded in the user query. Use known release data where possible. Include a Metacritic rating when known; otherwise return null. Also include a few relevant genres. If you cannot ground a game confidently, return no results instead of guessing."
                 },
                 new
                 {

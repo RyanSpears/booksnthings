@@ -43,7 +43,19 @@ public sealed class OpenAiShowSearchService(
 
             if (response.IsSuccessStatusCode)
             {
-                return OpenAiShowResponseParser.Parse(ExtractStructuredOutput(content));
+                var parsed = OpenAiShowResponseParser.Parse(ExtractStructuredOutput(content));
+                var grounded = OpenAiSearchResultGrounding.FilterSpecificMatches(
+                    query.Trim(),
+                    parsed,
+                    show => show.Title,
+                    show => new[] { show.Title, show.Network, show.Studio, show.Creator, string.Join(" ", show.Genres) });
+
+                if (grounded.Count < parsed.Count)
+                {
+                    logger.LogWarning("Discarded {DiscardedCount} ungrounded show search result(s) for query {Query}.", parsed.Count - grounded.Count, query.Trim());
+                }
+
+                return grounded;
             }
 
             if (response.StatusCode is HttpStatusCode.TooManyRequests or HttpStatusCode.RequestTimeout ||
@@ -80,7 +92,7 @@ public sealed class OpenAiShowSearchService(
                 results = new
                 {
                     type = "array",
-                    minItems = 1,
+                    minItems = 0,
                     maxItems = 8,
                     items = new
                     {
@@ -124,7 +136,7 @@ public sealed class OpenAiShowSearchService(
                 new
                 {
                     role = "system",
-                    content = "Return candidate TV show seasons that match the user query. Use known season and network data where possible. Include a rating when known; otherwise return null. Return season-level records that can be saved as watched or currently watching."
+                    content = "Return only TV show seasons that are strongly grounded in the user query. Use known season and network data where possible. Include a rating when known; otherwise return null. Return season-level records that can be saved as watched or currently watching. If you cannot ground a show confidently, return no results instead of guessing."
                 },
                 new
                 {

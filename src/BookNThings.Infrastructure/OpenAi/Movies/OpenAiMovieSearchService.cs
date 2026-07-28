@@ -43,7 +43,19 @@ public sealed class OpenAiMovieSearchService(
 
             if (response.IsSuccessStatusCode)
             {
-                return OpenAiMovieResponseParser.Parse(ExtractStructuredOutput(content));
+                var parsed = OpenAiMovieResponseParser.Parse(ExtractStructuredOutput(content));
+                var grounded = OpenAiSearchResultGrounding.FilterSpecificMatches(
+                    query.Trim(),
+                    parsed,
+                    movie => movie.Title,
+                    movie => new[] { movie.Title, movie.Studio, movie.Director, string.Join(" ", movie.Genres) });
+
+                if (grounded.Count < parsed.Count)
+                {
+                    logger.LogWarning("Discarded {DiscardedCount} ungrounded movie search result(s) for query {Query}.", parsed.Count - grounded.Count, query.Trim());
+                }
+
+                return grounded;
             }
 
             if (response.StatusCode is HttpStatusCode.TooManyRequests or HttpStatusCode.RequestTimeout ||
@@ -80,7 +92,7 @@ public sealed class OpenAiMovieSearchService(
                 results = new
                 {
                     type = "array",
-                    minItems = 1,
+                    minItems = 0,
                     maxItems = 8,
                     items = new
                     {
@@ -123,7 +135,7 @@ public sealed class OpenAiMovieSearchService(
                 new
                 {
                     role = "system",
-                    content = "Return candidate movies that match the user query. Use known film data where possible. Include a rating when known; otherwise return null. Include a director when known; otherwise return null."
+                    content = "Return only movies that are strongly grounded in the user query. Use known film data where possible. Include a rating when known; otherwise return null. Include a director when known; otherwise return null. If you cannot ground a movie confidently, return no results instead of guessing."
                 },
                 new
                 {

@@ -43,7 +43,19 @@ public sealed class OpenAiBookSearchService(
 
             if (response.IsSuccessStatusCode)
             {
-                return OpenAiBookResponseParser.Parse(ExtractStructuredOutput(content));
+                var parsed = OpenAiBookResponseParser.Parse(ExtractStructuredOutput(content));
+                var grounded = OpenAiSearchResultGrounding.FilterSpecificMatches(
+                    query.Trim(),
+                    parsed,
+                    book => book.Title,
+                    book => new[] { book.Title, book.Description, book.Author, string.Join(" ", book.Genres) });
+
+                if (grounded.Count < parsed.Count)
+                {
+                    logger.LogWarning("Discarded {DiscardedCount} ungrounded book search result(s) for query {Query}.", parsed.Count - grounded.Count, query.Trim());
+                }
+
+                return grounded;
             }
 
             if (response.StatusCode is HttpStatusCode.TooManyRequests or HttpStatusCode.RequestTimeout ||
@@ -77,7 +89,7 @@ public sealed class OpenAiBookSearchService(
                 results = new
                 {
                     type = "array",
-                    minItems = 1,
+                    minItems = 0,
                     maxItems = 8,
                     items = new
                     {
@@ -106,7 +118,7 @@ public sealed class OpenAiBookSearchService(
                 new
                 {
                     role = "system",
-                    content = "Return candidate books that match the user query. Use known bibliographic data where possible."
+                    content = "Return only books that are strongly grounded in the user query. Use known bibliographic data where possible. If you cannot ground a book confidently, return no results instead of guessing."
                 },
                 new
                 {

@@ -5,6 +5,7 @@ using BookNThings.Infrastructure.Configuration;
 using BookNThings.Infrastructure.Health;
 using BookNThings.Infrastructure.Local;
 using BookNThings.Infrastructure.OpenAi;
+using BookNThings.Infrastructure.TvMaze;
 using Microsoft.AspNetCore.DataProtection;
 using MudBlazor.Services;
 using Microsoft.Extensions.Options;
@@ -50,7 +51,11 @@ builder.Services.AddScoped<GameSearchOrchestrator>();
 builder.Services.AddScoped<MovieSearchOrchestrator>();
 builder.Services.AddScoped<ConnectionStatusService>();
 builder.Services.AddHttpClient<IBookSearchService, OpenAiBookSearchService>();
-builder.Services.AddHttpClient<IShowSearchService, OpenAiShowSearchService>();
+builder.Services.AddHttpClient<OpenAiShowSearchService>();
+builder.Services.AddHttpClient<IShowSearchService, TvMazeShowSearchService>(client =>
+{
+    client.BaseAddress = new Uri("https://api.tvmaze.com/");
+});
 builder.Services.AddHttpClient<IGameSearchService, OpenAiGameSearchService>();
 builder.Services.AddHttpClient<IMovieSearchService, OpenAiMovieSearchService>();
 builder.Services.AddScoped<JsonBookStore>();
