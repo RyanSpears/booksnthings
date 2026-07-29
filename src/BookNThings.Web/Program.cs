@@ -2,6 +2,7 @@ using BookNThings.Web.Components;
 using BookNThings.Application.Contracts;
 using BookNThings.Application.Services;
 using BookNThings.Infrastructure.Configuration;
+using BookNThings.Infrastructure.Igdb;
 using BookNThings.Infrastructure.Health;
 using BookNThings.Infrastructure.Local;
 using BookNThings.Infrastructure.OpenAi;
@@ -29,6 +30,7 @@ builder.Services.AddDataProtection()
 
 builder.Services.AddMudServices();
 builder.Services.Configure<OpenAiOptions>(builder.Configuration.GetSection(OpenAiOptions.SectionName));
+builder.Services.Configure<IgdbOptions>(builder.Configuration.GetSection(IgdbOptions.SectionName));
 builder.Services.Configure<TmDbOptions>(builder.Configuration.GetSection(TmDbOptions.SectionName));
 builder.Services.Configure<LocalJsonStorageOptions>(builder.Configuration.GetSection(LocalJsonStorageOptions.SectionName));
 builder.Services.Configure<LocalBooksOptions>(options => options.FileName = "books.json");
@@ -63,7 +65,11 @@ builder.Services.AddHttpClient<IMovieSearchService, TmDbMovieSearchService>(clie
 {
     client.BaseAddress = new Uri("https://api.themoviedb.org/3/");
 });
-builder.Services.AddHttpClient<IGameSearchService, OpenAiGameSearchService>();
+builder.Services.AddHttpClient<OpenAiGameSearchService>();
+builder.Services.AddHttpClient<IGameSearchService, IgdbGameSearchService>(client =>
+{
+    client.BaseAddress = new Uri("https://api.igdb.com/v4/");
+});
 builder.Services.AddScoped<JsonBookStore>();
 builder.Services.AddScoped<JsonGameStore>();
 builder.Services.AddScoped<JsonShowStore>();

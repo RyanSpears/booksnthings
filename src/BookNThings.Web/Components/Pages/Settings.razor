@@ -27,6 +27,20 @@
 
         <MudItem xs="12" md="6">
             <MudPaper Class="panel" Elevation="0">
+                <MudText Typo="Typo.h6">IGDB</MudText>
+                <MudList T="string" Dense="true">
+                    <MudListItem Icon="@StatusIcon(StatusService.IsIgdbClientIdConfigured)" IconColor="@StatusColor(StatusService.IsIgdbClientIdConfigured)">
+                        Client ID: @ConfiguredText(StatusService.IsIgdbClientIdConfigured)
+                    </MudListItem>
+                    <MudListItem Icon="@StatusIcon(StatusService.IsIgdbClientSecretConfigured)" IconColor="@StatusColor(StatusService.IsIgdbClientSecretConfigured)">
+                        Client secret: @ConfiguredText(StatusService.IsIgdbClientSecretConfigured)
+                    </MudListItem>
+                </MudList>
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12" md="6">
+            <MudPaper Class="panel" Elevation="0">
                 <MudText Typo="Typo.h6">Local JSON Storage</MudText>
                 <MudText Class="muted-text">
                     This folder is stored for this app on the server machine. Enter a path the app process can read and write.

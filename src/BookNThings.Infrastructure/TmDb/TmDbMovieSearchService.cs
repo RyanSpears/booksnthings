@@ -144,7 +144,7 @@ public sealed class TmDbMovieSearchService(
 
         var genres = details.Genres?
             .Select(genre => genre.Name?.Trim())
-            .Where(name => !string.IsNullOrWhiteSpace(name))
+            .OfType<string>()
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList() ?? [];
 

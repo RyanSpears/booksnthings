@@ -14,6 +14,7 @@ BookNThings is a local-deployable .NET 10 Blazor Web App for finding books and g
 - .NET 10 SDK
 - Docker Desktop
 - OpenAI API key
+- IGDB client ID and client secret
 
 The app stores books in `books.json`, games in `games.json`, and TV shows in `show.json` inside the configured local JSON storage folder.
 
@@ -27,6 +28,19 @@ $env:OpenAI__Model="gpt-4.1-mini"
 ```
 
 The OpenAI integration uses the Responses API with strict JSON schema structured outputs.
+
+## IGDB Setup
+
+Games now search IGDB first and fall back to OpenAI when IGDB is unavailable, misconfigured, or returns no grounded match.
+
+Create a Twitch developer application for IGDB, then configure:
+
+```powershell
+$env:IGDB__ClientId="..."
+$env:IGDB__ClientSecret="..."
+```
+
+IGDB uses the Twitch client credentials flow to exchange those values for a short-lived access token before calling the games API.
 
 ## TMDb Setup
 
@@ -47,6 +61,8 @@ Local development:
 ```text
 OpenAI__ApiKey
 OpenAI__Model
+IGDB__ClientId
+IGDB__ClientSecret
 TMDb__BearerToken
 ```
 
@@ -57,12 +73,16 @@ For local development, the web project is configured with ASP.NET Core User Secr
 ```text
 OpenAI:ApiKey
 OpenAI:Model
+IGDB:ClientId
+IGDB:ClientSecret
 ```
 
 Update them with real values:
 
 ```bash
 dotnet user-secrets set --project src/BookNThings.Web "OpenAI:ApiKey" "sk-..."
+dotnet user-secrets set --project src/BookNThings.Web "IGDB:ClientId" "..."
+dotnet user-secrets set --project src/BookNThings.Web "IGDB:ClientSecret" "..."
 ```
 
 Docker Compose reads:
@@ -70,6 +90,8 @@ Docker Compose reads:
 ```text
 OPENAI_API_KEY
 OPENAI_MODEL
+IGDB_CLIENT_ID
+IGDB_CLIENT_SECRET
 ASPNETCORE_ENVIRONMENT
 BOOKNTHINGS_PORT
 BOOKNTHINGS_HOST_DATA_DIRECTORY

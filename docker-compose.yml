@@ -12,4 +12,6 @@ services:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
       OpenAI__ApiKey: ${OPENAI_API_KEY}
       OpenAI__Model: ${OPENAI_MODEL:-gpt-4.1-mini}
+      IGDB__ClientId: ${IGDB_CLIENT_ID}
+      IGDB__ClientSecret: ${IGDB_CLIENT_SECRET}
       LocalJsonStorage__DefaultDataDirectory: ${BOOKNTHINGS_CONTAINER_DATA_DIRECTORY:-/data}
