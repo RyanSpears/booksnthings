@@ -1,93 +1,183 @@
-<div class="brand-block">
-    <MudText Typo="Typo.h5" Class="brand-name">BookNThings</MudText>
+<div class="@(IsExpanded ? "brand-block" : "brand-block brand-block-collapsed")">
+    <span class="@(IsExpanded ? "brand-name" : "brand-name brand-name-collapsed")">
+        @(IsExpanded ? "BookNThings" : "BNT")
+    </span>
+    <MudIconButton Icon="@(IsExpanded ? Icons.Material.Filled.ChevronLeft : Icons.Material.Filled.ChevronRight)"
+                   Size="Size.Small"
+                   Color="Color.Inherit"
+                   Class="nav-drawer-toggle"
+                   OnClick="ToggleDrawerAsync"
+                   aria-label="@ToggleLabel"
+                   title="@ToggleLabel" />
 </div>
 
+<div class="@(IsExpanded ? "spurs-nav-shell" : "spurs-nav-shell spurs-nav-shell-collapsed")">
 <MudNavMenu Color="Color.Inherit" Bordered="false" Class="spurs-nav">
-    <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
+    <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Dashboard" aria-label="Dashboard" title="Dashboard">Dashboard</MudNavLink>
 
     <div class="nav-group">
-        <MudNavLink Class="nav-toggle-link" Icon="@Icons.Material.Filled.AutoStories" OnClick="@ToggleBooks">
+        <MudNavLink Class="nav-toggle-link" Icon="@Icons.Material.Filled.AutoStories" OnClick="ToggleBooksAsync" aria-label="Books" title="Books">
             <span class="nav-toggle-content">
                 <span class="nav-toggle-label">Books</span>
                 <MudIcon Icon="@(_booksExpanded ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)"
                          Class="nav-toggle-chevron" />
             </span>
         </MudNavLink>
-        <MudCollapse Expanded="@_booksExpanded" Class="nav-collapse">
+        <MudCollapse Expanded="@(IsExpanded && _booksExpanded)" Class="nav-collapse">
             <div class="nav-child-list">
-                <MudNavLink Href="search" Icon="@Icons.Material.Filled.Search">Search Books</MudNavLink>
-                <MudNavLink Href="currently-reading" Icon="@Icons.Material.Filled.AutoStories">Currently Reading</MudNavLink>
-                <MudNavLink Href="books-read" Icon="@Icons.Material.Filled.History">Books Read</MudNavLink>
-                <MudNavLink Href="book-stats" Icon="@Icons.Material.Filled.BarChart">Book Stats</MudNavLink>
+                <MudNavLink Href="search" Icon="@Icons.Material.Filled.Search">Search</MudNavLink>
+                <MudNavLink Href="currently-reading" Icon="@Icons.Material.Filled.AutoStories">Reading</MudNavLink>
+                <MudNavLink Href="books-read" Icon="@Icons.Material.Filled.History">Read</MudNavLink>
+                <MudNavLink Href="book-stats" Icon="@Icons.Material.Filled.BarChart">Stats</MudNavLink>
             </div>
         </MudCollapse>
     </div>
 
     <div class="nav-group">
-        <MudNavLink Class="nav-toggle-link" Icon="@Icons.Material.Filled.SportsEsports" OnClick="@ToggleGames">
+        <MudNavLink Class="nav-toggle-link" Icon="@Icons.Material.Filled.SportsEsports" OnClick="ToggleGamesAsync" aria-label="Games" title="Games">
             <span class="nav-toggle-content">
                 <span class="nav-toggle-label">Games</span>
                 <MudIcon Icon="@(_gamesExpanded ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)"
                          Class="nav-toggle-chevron" />
             </span>
         </MudNavLink>
-        <MudCollapse Expanded="@_gamesExpanded" Class="nav-collapse">
+        <MudCollapse Expanded="@(IsExpanded && _gamesExpanded)" Class="nav-collapse">
             <div class="nav-child-list">
-                <MudNavLink Href="search-games" Icon="@Icons.Material.Filled.Gamepad">Search Games</MudNavLink>
-                <MudNavLink Href="currently-playing" Icon="@Icons.Material.Filled.VideogameAsset">Currently Playing</MudNavLink>
-                <MudNavLink Href="games-played" Icon="@Icons.Material.Filled.SportsEsports">Games Played</MudNavLink>
-                <MudNavLink Href="game-stats" Icon="@Icons.Material.Filled.BarChart">Game Stats</MudNavLink>
+                <MudNavLink Href="search-games" Icon="@Icons.Material.Filled.Gamepad">Search</MudNavLink>
+                <MudNavLink Href="currently-playing" Icon="@Icons.Material.Filled.VideogameAsset">Playing</MudNavLink>
+                <MudNavLink Href="games-played" Icon="@Icons.Material.Filled.SportsEsports">Played</MudNavLink>
+                <MudNavLink Href="game-stats" Icon="@Icons.Material.Filled.BarChart">Stats</MudNavLink>
             </div>
         </MudCollapse>
     </div>
 
     <div class="nav-group">
-        <MudNavLink Class="nav-toggle-link" Icon="@Icons.Material.Filled.Movie" OnClick="@ToggleMovies">
+        <MudNavLink Class="nav-toggle-link" Icon="@Icons.Material.Filled.Movie" OnClick="ToggleMoviesAsync" aria-label="Movies" title="Movies">
             <span class="nav-toggle-content">
                 <span class="nav-toggle-label">Movies</span>
                 <MudIcon Icon="@(_moviesExpanded ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)"
                          Class="nav-toggle-chevron" />
             </span>
         </MudNavLink>
-        <MudCollapse Expanded="@_moviesExpanded" Class="nav-collapse">
+        <MudCollapse Expanded="@(IsExpanded && _moviesExpanded)" Class="nav-collapse">
             <div class="nav-child-list">
-                <MudNavLink Href="search-movies" Icon="@Icons.Material.Filled.Search">Search Movies</MudNavLink>
-                <MudNavLink Href="currently-watching-movies" Icon="@Icons.Material.Filled.OndemandVideo">Currently Watching</MudNavLink>
-                <MudNavLink Href="movies-watched" Icon="@Icons.Material.Filled.Theaters">Movies Watched</MudNavLink>
-                <MudNavLink Href="movie-stats" Icon="@Icons.Material.Filled.BarChart">Movie Stats</MudNavLink>
+                <MudNavLink Href="search-movies" Icon="@Icons.Material.Filled.Search">Search</MudNavLink>
+                <MudNavLink Href="currently-watching-movies" Icon="@Icons.Material.Filled.OndemandVideo">Watching</MudNavLink>
+                <MudNavLink Href="movies-watched" Icon="@Icons.Material.Filled.Theaters">Watched</MudNavLink>
+                <MudNavLink Href="movie-stats" Icon="@Icons.Material.Filled.BarChart">Stats</MudNavLink>
             </div>
         </MudCollapse>
     </div>
 
     <div class="nav-group">
-        <MudNavLink Class="nav-toggle-link" Icon="@Icons.Material.Filled.LiveTv" OnClick="@ToggleShows">
+        <MudNavLink Class="nav-toggle-link" Icon="@Icons.Material.Filled.LiveTv" OnClick="ToggleShowsAsync" aria-label="TV Shows" title="TV Shows">
             <span class="nav-toggle-content">
                 <span class="nav-toggle-label">TV Shows</span>
                 <MudIcon Icon="@(_showsExpanded ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)"
                          Class="nav-toggle-chevron" />
             </span>
         </MudNavLink>
-        <MudCollapse Expanded="@_showsExpanded" Class="nav-collapse">
+        <MudCollapse Expanded="@(IsExpanded && _showsExpanded)" Class="nav-collapse">
             <div class="nav-child-list">
-                <MudNavLink Href="search-shows" Icon="@Icons.Material.Filled.Search">Search TV Shows</MudNavLink>
-                <MudNavLink Href="currently-watching" Icon="@Icons.Material.Filled.LiveTv">Currently Watching</MudNavLink>
-                <MudNavLink Href="shows-watched" Icon="@Icons.Material.Filled.LiveTv">TV Shows Watched</MudNavLink>
-                <MudNavLink Href="tv-show-stats" Icon="@Icons.Material.Filled.BarChart">TV Show Stats</MudNavLink>
+                <MudNavLink Href="search-shows" Icon="@Icons.Material.Filled.Search">Search</MudNavLink>
+                <MudNavLink Href="currently-watching" Icon="@Icons.Material.Filled.LiveTv">Watching</MudNavLink>
+                <MudNavLink Href="shows-watched" Icon="@Icons.Material.Filled.LiveTv">Watched</MudNavLink>
+                <MudNavLink Href="tv-show-stats" Icon="@Icons.Material.Filled.BarChart">Stats</MudNavLink>
             </div>
         </MudCollapse>
     </div>
 
-    <MudNavLink Href="settings" Icon="@Icons.Material.Filled.Settings">Settings</MudNavLink>
+    <MudNavLink Href="settings" Icon="@Icons.Material.Filled.Settings" aria-label="Settings" title="Settings">Settings</MudNavLink>
 </MudNavMenu>
+</div>
 
 @code {
+    [Parameter]
+    public bool IsExpanded { get; set; }
+
+    [Parameter]
+    public EventCallback OnToggleDrawer { get; set; }
+
+    [Parameter]
+    public EventCallback OnExpandDrawer { get; set; }
+
     private bool _booksExpanded;
     private bool _gamesExpanded;
     private bool _moviesExpanded;
     private bool _showsExpanded;
+    private bool _wasExpanded;
 
-    private void ToggleBooks() => _booksExpanded = !_booksExpanded;
-    private void ToggleGames() => _gamesExpanded = !_gamesExpanded;
-    private void ToggleMovies() => _moviesExpanded = !_moviesExpanded;
-    private void ToggleShows() => _showsExpanded = !_showsExpanded;
+    private string ToggleLabel => IsExpanded ? "Collapse navigation" : "Expand navigation";
+
+    protected override void OnParametersSet()
+    {
+        if (_wasExpanded && !IsExpanded)
+        {
+            CloseAllGroups();
+        }
+
+        _wasExpanded = IsExpanded;
+    }
+
+    private Task ToggleDrawerAsync() => OnToggleDrawer.InvokeAsync();
+
+    private async Task ToggleBooksAsync()
+    {
+        if (!IsExpanded)
+        {
+            CloseAllGroups();
+            _booksExpanded = true;
+            await OnExpandDrawer.InvokeAsync();
+            return;
+        }
+
+        _booksExpanded = !_booksExpanded;
+    }
+
+    private async Task ToggleGamesAsync()
+    {
+        if (!IsExpanded)
+        {
+            CloseAllGroups();
+            _gamesExpanded = true;
+            await OnExpandDrawer.InvokeAsync();
+            return;
+        }
+
+        _gamesExpanded = !_gamesExpanded;
+    }
+
+    private async Task ToggleMoviesAsync()
+    {
+        if (!IsExpanded)
+        {
+            CloseAllGroups();
+            _moviesExpanded = true;
+            await OnExpandDrawer.InvokeAsync();
+            return;
+        }
+
+        _moviesExpanded = !_moviesExpanded;
+    }
+
+    private async Task ToggleShowsAsync()
+    {
+        if (!IsExpanded)
+        {
+            CloseAllGroups();
+            _showsExpanded = true;
+            await OnExpandDrawer.InvokeAsync();
+            return;
+        }
+
+        _showsExpanded = !_showsExpanded;
+    }
+
+    private void CloseAllGroups()
+    {
+        _booksExpanded = false;
+        _gamesExpanded = false;
+        _moviesExpanded = false;
+        _showsExpanded = false;
+    }
 }

@@ -12,9 +12,9 @@
 <MudStack Spacing="2">
     <MudPaper Class="hero-panel" Elevation="0">
         <div>
-            <MudText Typo="Typo.overline" Class="eyebrow">Local-first library tracker</MudText>
-            <MudText Typo="Typo.h4" Class="hero-title">Track your year across books, games, movies, and TV shows in one place.</MudText>
-            <MudText Typo="Typo.body1" Class="muted-text">BookNThings uses OpenAI structured outputs for candidate discovery and local JSON files for persistence across books, games, movies, and shows.</MudText>
+            <MudText Typo="Typo.overline" Class="eyebrow">BOOKNTHINGS</MudText>
+            <MudText Typo="Typo.h4" Class="hero-title">Your year in media.</MudText>
+            <MudText Typo="Typo.body1" Class="muted-text">Books, games, movies, and TV. Stored locally.</MudText>
             <MudStack Row="true" Spacing="2" Class="action-row">
                 <MudButton Href="search" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Search">Search Books</MudButton>
                 <MudButton Href="search-games" Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Gamepad">Search games</MudButton>
@@ -31,11 +31,6 @@
             </MudStack>
         </div>
 
-        <MudPaper Class="panel" Elevation="0">
-            <MudText Typo="Typo.h6">Configuration</MudText>
-            <MudText Class="muted-text">Check OpenAI status before searching or saving.</MudText>
-            <MudButton Href="settings" Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Settings">Open settings</MudButton>
-        </MudPaper>
     </MudPaper>
 
     @if (isLoading)

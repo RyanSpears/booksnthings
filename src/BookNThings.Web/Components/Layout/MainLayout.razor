@@ -6,8 +6,16 @@
 <MudSnackbarProvider />
 
 <MudLayout>
-    <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="0" Breakpoint="Breakpoint.Md" Class="spurs-drawer">
-        <NavMenu />
+    <MudDrawer @bind-Open="_drawerOpen"
+               Variant="DrawerVariant.Mini"
+               OpenMiniOnHover="false"
+               ClipMode="DrawerClipMode.Always"
+               Elevation="0"
+               Breakpoint="Breakpoint.Md"
+               Class="spurs-drawer">
+        <NavMenu IsExpanded="@_drawerOpen"
+                 OnToggleDrawer="ToggleDrawer"
+                 OnExpandDrawer="ExpandDrawer" />
     </MudDrawer>
 
     <MudMainContent Class="app-main">
@@ -25,6 +33,10 @@
 
 @code {
     private bool _drawerOpen = true;
+
+    private void ToggleDrawer() => _drawerOpen = !_drawerOpen;
+
+    private void ExpandDrawer() => _drawerOpen = true;
 
     private readonly MudTheme _theme = new()
     {
@@ -50,13 +62,14 @@
         LayoutProperties = new LayoutProperties
         {
             DefaultBorderRadius = "18px",
-            DrawerWidthLeft = "230px"
+            DrawerWidthLeft = "260px",
+            DrawerMiniWidthLeft = "72px"
         },
         Typography = new Typography
         {
             Default = new DefaultTypography
             {
-                FontFamily = ["Inter", "Segoe UI", "Arial", "sans-serif"]
+                FontFamily = ["Press Start 2P", "system-ui", "sans-serif"]
             }
         }
     };

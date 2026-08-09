@@ -1,21 +1,52 @@
 .brand-block {
     height: 60px;
     display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding: 0 2rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    overflow: hidden;
+    padding: 0 1rem;
     background: #007c7c;
 }
 
 .brand-name {
+    min-width: 0;
     color: #ffffff;
     font-size: 0.95rem;
     font-weight: 800;
     letter-spacing: 0;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.brand-block ::deep .nav-drawer-toggle {
+    flex: 0 0 auto;
+    color: #ffffff !important;
+}
+
+.brand-block ::deep .nav-drawer-toggle:hover {
+    background: rgba(255, 255, 255, 0.18) !important;
+}
+
+.brand-block-collapsed {
+    gap: 0.1rem;
+    padding: 0 0.35rem;
+}
+
+.brand-name-collapsed {
+    font-size: 0.62rem;
 }
 
 .spurs-nav {
     padding: 0.8rem 0.75rem;
+}
+
+.spurs-nav-shell ::deep .spurs-nav {
+    padding: 0.8rem 0.75rem;
+}
+
+.spurs-nav-shell-collapsed ::deep .spurs-nav {
+    padding: 0.8rem 0.5rem;
 }
 
 .spurs-nav ::deep .mud-nav-link {
@@ -161,9 +192,37 @@
 }
 
 .nav-child-list ::deep .mud-nav-link .mud-nav-link-text {
+    font-size: 0.7rem;
     margin-left: 0.85rem;
 }
 
 .nav-child-list ::deep .mud-nav-link-icon {
     min-width: 1.25rem;
+}
+
+.spurs-nav-shell-collapsed .nav-group {
+    margin: 0;
+}
+
+.spurs-nav-shell-collapsed .nav-collapse {
+    display: none;
+}
+
+.spurs-nav-shell-collapsed ::deep .mud-nav-link {
+    min-height: 56px !important;
+    justify-content: center;
+    border-left-width: 0;
+    margin-bottom: 1.25rem;
+    padding: 0 !important;
+}
+
+.spurs-nav-shell-collapsed ::deep .mud-nav-link .mud-nav-link-text {
+    display: none;
+}
+
+.spurs-nav-shell-collapsed ::deep .mud-nav-link-icon,
+.spurs-nav-shell-collapsed .nav-toggle-link ::deep .mud-nav-link-icon {
+    min-width: 1.8rem;
+    font-size: 1.8rem !important;
+    margin: 0;
 }

@@ -68,8 +68,14 @@
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd DataLabel="Title">
-                        <MudText Typo="Typo.subtitle2">@context.Title</MudText>
-                        <MudText Typo="Typo.caption" Class="muted-text">@context.Description</MudText>
+                        <MudTooltip Arrow="true" Placement="Placement.Top">
+                            <ChildContent>
+                                <MudText Typo="Typo.subtitle2">@context.Title</MudText>
+                            </ChildContent>
+                            <TooltipContent>
+                                <div class="book-description-tooltip">@context.Description</div>
+                            </TooltipContent>
+                        </MudTooltip>
                     </MudTd>
                     <MudTd DataLabel="Author">@context.Author</MudTd>
                     <MudTd DataLabel="Published">@context.DatePublished.ToString("yyyy-MM-dd")</MudTd>
