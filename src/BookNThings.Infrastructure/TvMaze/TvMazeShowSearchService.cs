@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text.RegularExpressions;
 using System.Text.Json;
 using BookNThings.Application.Contracts;
 using BookNThings.Domain.Models;
@@ -13,6 +14,9 @@ public sealed class TvMazeShowSearchService(
     ILogger<TvMazeShowSearchService> logger) : IShowSearchService
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+    private static readonly Regex SeasonQueryPattern = new(@"\b(?:s(?:eason)?\.?\s*)0*(?<season>\d{1,2})\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    private static readonly Regex LeadingShowIntentPattern = new(@"^\s*(?:a|an|the)?\s*(?:tv\s*)?(?:show|series)\s+(?:called|named|titled)\s+", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    private static readonly Regex WhitespacePattern = new(@"\s+", RegexOptions.Compiled);
 
     public async Task<IReadOnlyList<Show>> SearchAsync(string query, CancellationToken cancellationToken)
     {
@@ -23,10 +27,11 @@ public sealed class TvMazeShowSearchService(
         }
 
         var normalizedQuery = query.Trim();
+        var tvMazeQuery = BuildTvMazeQuery(normalizedQuery);
 
         try
         {
-            var tvMazeShows = await SearchTvMazeAsync(normalizedQuery, cancellationToken);
+            var tvMazeShows = await SearchTvMazeAsync(tvMazeQuery, cancellationToken);
             if (tvMazeShows.Count > 0)
             {
                 return tvMazeShows;
@@ -46,9 +51,9 @@ public sealed class TvMazeShowSearchService(
         return await fallbackSearchService.SearchAsync(normalizedQuery, cancellationToken);
     }
 
-    private async Task<IReadOnlyList<Show>> SearchTvMazeAsync(string query, CancellationToken cancellationToken)
+    private async Task<IReadOnlyList<Show>> SearchTvMazeAsync(TvMazeQuery query, CancellationToken cancellationToken)
     {
-        using var searchRequest = new HttpRequestMessage(HttpMethod.Get, $"search/shows?q={Uri.EscapeDataString(query)}");
+        using var searchRequest = new HttpRequestMessage(HttpMethod.Get, $"search/shows?q={Uri.EscapeDataString(query.SearchText)}");
         using var searchResponse = await httpClient.SendAsync(searchRequest, cancellationToken);
 
         if (searchResponse.StatusCode == HttpStatusCode.NotFound)
@@ -65,7 +70,7 @@ public sealed class TvMazeShowSearchService(
         var searchResults = Deserialize<TvMazeShowSearchResult[]>(searchContent) ?? [];
 
         var groundedResults = OpenAiSearchResultGrounding.FilterSpecificMatches(
-            query,
+            query.SearchText,
             searchResults,
             result => result.Show.Name ?? "",
             result => new[]
@@ -87,6 +92,11 @@ public sealed class TvMazeShowSearchService(
             if (seasons.Count == 0)
             {
                 continue;
+            }
+
+            if (query.Season is { } requestedSeason)
+            {
+                seasons = seasons.Where(season => season.Number == requestedSeason).ToList();
             }
 
             var mapped = MapToShows(result.Show, seasons);
@@ -149,6 +159,23 @@ public sealed class TvMazeShowSearchService(
         && !string.IsNullOrWhiteSpace(show.Studio)
         && show.Season > 0;
 
+    private static TvMazeQuery BuildTvMazeQuery(string query)
+    {
+        int? requestedSeason = null;
+        var seasonMatch = SeasonQueryPattern.Match(query);
+        if (seasonMatch.Success && int.TryParse(seasonMatch.Groups["season"].Value, out var season))
+        {
+            requestedSeason = season;
+        }
+
+        var searchText = SeasonQueryPattern.Replace(query, " ");
+        searchText = LeadingShowIntentPattern.Replace(searchText, "");
+        searchText = searchText.Replace("&", " and ", StringComparison.Ordinal);
+        searchText = WhitespacePattern.Replace(searchText, " ").Trim();
+
+        return new TvMazeQuery(string.IsNullOrWhiteSpace(searchText) ? query : searchText, requestedSeason);
+    }
+
     private static T? Deserialize<T>(string json)
     {
         try
@@ -160,4 +187,6 @@ public sealed class TvMazeShowSearchService(
             throw new InvalidOperationException("TVmaze response contained invalid JSON.", ex);
         }
     }
+
+    private sealed record TvMazeQuery(string SearchText, int? Season);
 }

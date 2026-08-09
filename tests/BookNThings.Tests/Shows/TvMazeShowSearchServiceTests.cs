@@ -86,6 +86,87 @@ public class TvMazeShowSearchServiceTests
     }
 
     [Fact]
+    public async Task SearchAsync_Should_Find_Stylized_Show_Query_With_Requested_Season()
+    {
+        // Arrange
+        string? requestedSearch = null;
+        var tvMazeHandler = new RoutingHandler(request =>
+        {
+            if (request.RequestUri?.AbsolutePath == "/search/shows")
+            {
+                requestedSearch = request.RequestUri.PathAndQuery;
+            }
+
+            return request.RequestUri?.AbsolutePath switch
+            {
+                "/search/shows" => JsonResponse("""
+                [
+                  {
+                    "score": 42.0,
+                    "show": {
+                      "id": 321,
+                      "name": "Rick and Morty",
+                      "genres": ["Comedy", "Science-Fiction"],
+                      "rating": { "average": 9.0 },
+                      "network": { "name": "Adult Swim" },
+                      "webChannel": null
+                    }
+                  }
+                ]
+                """),
+                "/shows/321/seasons" => JsonResponse("""
+                [
+                  {
+                    "id": 1,
+                    "number": 1,
+                    "name": "Season 1",
+                    "episodeOrder": 11,
+                    "premiereDate": "2013-12-02",
+                    "endDate": "2014-04-14",
+                    "network": { "name": "Adult Swim" },
+                    "webChannel": null
+                  },
+                  {
+                    "id": 4,
+                    "number": 4,
+                    "name": "Season 4",
+                    "episodeOrder": 10,
+                    "premiereDate": "2019-11-10",
+                    "endDate": "2020-05-31",
+                    "network": { "name": "Adult Swim" },
+                    "webChannel": null
+                  }
+                ]
+                """),
+                _ => new HttpResponseMessage(HttpStatusCode.NotFound)
+            };
+        });
+
+        var tvMazeClient = new HttpClient(tvMazeHandler)
+        {
+            BaseAddress = new Uri("https://api.tvmaze.com/")
+        };
+
+        var openAiHandler = new RoutingHandler(_ => throw new InvalidOperationException("OpenAI fallback should not be called."));
+        var openAiClient = new HttpClient(openAiHandler)
+        {
+            BaseAddress = new Uri("https://api.openai.com/")
+        };
+        var openAiService = new OpenAiShowSearchService(openAiClient, Options.Create(new OpenAiOptions { ApiKey = "test-key" }), MockLogger<OpenAiShowSearchService>.Instance);
+        var service = new TvMazeShowSearchService(tvMazeClient, openAiService, MockLogger<TvMazeShowSearchService>.Instance);
+
+        // Act
+        var results = await service.SearchAsync("Rick & Morty Season 4", CancellationToken.None);
+
+        // Assert
+        requestedSearch.Should().Be("/search/shows?q=Rick%20and%20Morty");
+        results.Should().ContainSingle();
+        results[0].Title.Should().Be("Rick and Morty");
+        results[0].Season.Should().Be(4);
+        results[0].Network.Should().Be("Adult Swim");
+    }
+
+    [Fact]
     public async Task SearchAsync_Should_Fall_Back_To_OpenAi_When_TvMaze_Misses()
     {
         // Arrange

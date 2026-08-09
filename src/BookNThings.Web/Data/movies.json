@@ -1,5 +1,19 @@
 [
   {
+    "id": "18d95315c75141c68d38f8d26dac66a8",
+    "title": "Falling Down",
+    "studio": "Warner Bros.",
+    "releasedDate": "1993-06-25T00:00:00",
+    "dateWatched": "2026-07-23T00:00:00+09:30",
+    "rating": 7.6,
+    "genres": [
+      "Drama",
+      "Thriller"
+    ],
+    "director": "Joel Schumacher",
+    "createdAt": "2026-07-22T22:52:57.3899284Z"
+  },
+  {
     "id": "movie-2026-020",
     "title": "Star Wars: The Last Jedi",
     "studio": "Lucasfilm Ltd.",
@@ -140,7 +154,7 @@
   {
     "id": "movie-2026-011",
     "title": "Giannis: The Marvelous Journey",
-    "studio": "Improbable Media, Words + Pictures",
+    "studio": "Improbable Media, Words \u002B Pictures",
     "releasedDate": "2024-02-19T00:00:00Z",
     "dateWatched": "2026-03-15T00:00:00Z",
     "rating": 83,
