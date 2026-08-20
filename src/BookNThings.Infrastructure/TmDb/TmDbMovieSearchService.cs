@@ -60,7 +60,24 @@ public sealed class TmDbMovieSearchService(
 
     private async Task<IReadOnlyList<Movie>> SearchMovieCandidatesAsync(string query, CancellationToken cancellationToken)
     {
-        var requestUri = BuildSearchUri(query);
+        foreach (var searchQuery in BuildSearchQueries(query))
+        {
+            var results = await SearchMovieCandidatesForQueryAsync(query, searchQuery, cancellationToken);
+            if (results.Count > 0)
+            {
+                return results;
+            }
+        }
+
+        return [];
+    }
+
+    private async Task<IReadOnlyList<Movie>> SearchMovieCandidatesForQueryAsync(
+        string originalQuery,
+        string searchQuery,
+        CancellationToken cancellationToken)
+    {
+        var requestUri = BuildSearchUri(searchQuery);
         using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _options.BearerToken);
 
@@ -83,7 +100,7 @@ public sealed class TmDbMovieSearchService(
         }
 
         var groundedResults = OpenAiSearchResultGrounding.FilterSpecificMatches(
-            query,
+            originalQuery,
             searchResponse.Results,
             result => result.Title ?? "",
             result => new[] { result.Title, result.OriginalTitle });
@@ -104,6 +121,22 @@ public sealed class TmDbMovieSearchService(
         }
 
         return mappedMovies;
+    }
+
+    private static IEnumerable<string> BuildSearchQueries(string query)
+    {
+        yield return query;
+
+        var canonicalQuery = System.Text.RegularExpressions.Regex.Replace(
+            query,
+            @"\bspiderman\b",
+            "Spider-Man",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+        if (!string.Equals(canonicalQuery, query, StringComparison.OrdinalIgnoreCase))
+        {
+            yield return canonicalQuery;
+        }
     }
 
     private async Task<Movie?> BuildMovieAsync(TmDbMovieSearchResult candidate, CancellationToken cancellationToken)

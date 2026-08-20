@@ -172,6 +172,88 @@ public class TmDbMovieSearchServiceTests
         results[0].Director.Should().Be("Lana Wachowski");
     }
 
+    [Fact]
+    public async Task SearchAsync_Should_Retry_SpiderMan_Query_When_Query_Uses_Spiderman()
+    {
+        // Arrange
+        var tmDbHandler = new RoutingHandler(request =>
+        {
+            if (request.RequestUri?.AbsolutePath == "/3/search/movie" &&
+                request.RequestUri.Query.Contains("query=Spiderman%3A%20Homecoming", StringComparison.Ordinal))
+            {
+                return JsonResponse("""{ "results": [] }""");
+            }
+
+            if (request.RequestUri?.AbsolutePath == "/3/search/movie" &&
+                request.RequestUri.Query.Contains("query=Spider-Man%3A%20Homecoming", StringComparison.Ordinal))
+            {
+                return JsonResponse("""
+                {
+                  "results": [
+                    {
+                      "id": 315635,
+                      "title": "Spider-Man: Homecoming",
+                      "original_title": "Spider-Man: Homecoming",
+                      "release_date": "2017-07-07",
+                      "vote_average": 7.3,
+                      "vote_count": 22000
+                    }
+                  ]
+                }
+                """);
+            }
+
+            if (request.RequestUri?.AbsolutePath == "/3/movie/315635")
+            {
+                return JsonResponse("""
+                {
+                  "id": 315635,
+                  "title": "Spider-Man: Homecoming",
+                  "release_date": "2017-07-07",
+                  "vote_average": 7.3,
+                  "vote_count": 22000,
+                  "genres": [
+                    { "id": 28, "name": "Action" },
+                    { "id": 12, "name": "Adventure" }
+                  ],
+                  "production_companies": [
+                    { "id": 5, "name": "Columbia Pictures" }
+                  ],
+                  "credits": {
+                    "crew": [
+                      { "job": "Director", "name": "Jon Watts" }
+                    ]
+                  }
+                }
+                """);
+            }
+
+            return new HttpResponseMessage(HttpStatusCode.NotFound);
+        });
+
+        var tmDbClient = new HttpClient(tmDbHandler)
+        {
+            BaseAddress = new Uri("https://api.themoviedb.org/3/")
+        };
+
+        var openAiHandler = new RoutingHandler(_ => throw new InvalidOperationException("OpenAI fallback should not be called."));
+        var openAiClient = new HttpClient(openAiHandler)
+        {
+            BaseAddress = new Uri("https://api.openai.com/")
+        };
+        var fallback = new OpenAiMovieSearchService(openAiClient, Options.Create(new OpenAiOptions { ApiKey = "test-key" }), MockLogger<OpenAiMovieSearchService>.Instance);
+        var service = new TmDbMovieSearchService(tmDbClient, Options.Create(new TmDbOptions { BearerToken = "test-token" }), fallback, MockLogger<TmDbMovieSearchService>.Instance);
+
+        // Act
+        var results = await service.SearchAsync("Spiderman: Homecoming", CancellationToken.None);
+
+        // Assert
+        results.Should().ContainSingle();
+        results[0].Title.Should().Be("Spider-Man: Homecoming");
+        results[0].Studio.Should().Be("Columbia Pictures");
+        results[0].Director.Should().Be("Jon Watts");
+    }
+
     private static HttpResponseMessage JsonResponse(string json) =>
         new(HttpStatusCode.OK)
         {

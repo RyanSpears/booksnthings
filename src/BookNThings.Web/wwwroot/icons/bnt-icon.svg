@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">Book taskbar application icon</title>
+  <desc id="desc">An original app icon showing an open book on a dark teal rounded square.</desc>
+  <defs>
+    <linearGradient id="bg" x1="40" y1="28" x2="216" y2="228" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0f766e"/>
+      <stop offset="1" stop-color="#172554"/>
+    </linearGradient>
+    <linearGradient id="pages" x1="62" y1="82" x2="194" y2="188" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#dbeafe"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="48" fill="url(#bg)"/>
+  <path d="M128 84c-18-18-46-24-78-17-8 2-14 9-14 17v92c0 6 6 11 12 10 32-7 59-2 80 15 21-17 48-22 80-15 6 1 12-4 12-10V84c0-8-6-15-14-17-32-7-60-1-78 17Z" fill="#082f49" opacity=".5"/>
+  <path d="M126 84c-18-16-44-21-74-15-6 1-10 6-10 12v87c0 4 4 7 8 6 30-6 56-1 76 16V84Z" fill="url(#pages)"/>
+  <path d="M130 84c18-16 44-21 74-15 6 1 10 6 10 12v87c0 4-4 7-8 6-30-6-56-1-76 16V84Z" fill="url(#pages)"/>
+  <path d="M128 82v111" stroke="#38bdf8" stroke-width="8" stroke-linecap="round"/>
+  <path d="M63 96c19-3 35 0 50 8M63 121c18-3 35 0 50 7M63 146c18-3 35 0 50 8M193 96c-19-3-35 0-50 8M193 121c-18-3-35 0-50 7M193 146c-18-3-35 0-50 8" stroke="#60a5fa" stroke-width="7" stroke-linecap="round" opacity=".65"/>
+  <path d="M128 204c-20-17-47-23-83-16-9 2-17-5-17-14v-2c0 15 13 26 28 23 29-5 52 0 72 17 20-17 43-22 72-17 15 3 28-8 28-23v2c0 9-8 16-17 14-36-7-63-1-83 16Z" fill="#7dd3fc" opacity=".9"/>
+</svg>

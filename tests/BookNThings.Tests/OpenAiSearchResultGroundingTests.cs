@@ -76,4 +76,32 @@ public class OpenAiSearchResultGroundingTests
         // Assert
         grounded.Should().HaveCount(2);
     }
+
+    [Fact]
+    public void FilterSpecificMatches_Should_Match_SpiderMan_When_Query_Uses_Spiderman()
+    {
+        // Arrange
+        var query = "Spiderman: Homecoming";
+        var results = new[]
+        {
+            new Movie
+            {
+                Title = "Spider-Man: Homecoming",
+                Studio = "Columbia Pictures",
+                ReleasedDate = new DateTime(2017, 7, 7),
+                Director = "Jon Watts"
+            }
+        };
+
+        // Act
+        var grounded = OpenAiSearchResultGrounding.FilterSpecificMatches(
+            query,
+            results,
+            movie => movie.Title,
+            movie => new[] { movie.Title, movie.Studio, movie.Director, string.Join(" ", movie.Genres) });
+
+        // Assert
+        grounded.Should().ContainSingle();
+        grounded[0].Title.Should().Be("Spider-Man: Homecoming");
+    }
 }

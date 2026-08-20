@@ -138,10 +138,20 @@ public static class OpenAiSearchResultGrounding
         || query.Contains(" created by ", StringComparison.OrdinalIgnoreCase)
         || query.Contains(" written by ", StringComparison.OrdinalIgnoreCase);
 
-    private static string Normalize(string value) =>
-        string.IsNullOrWhiteSpace(value)
-            ? ""
-            : value.Trim().ToLowerInvariant();
+    private static string Normalize(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return "";
+        }
+
+        var normalized = value.Trim().ToLowerInvariant();
+        return System.Text.RegularExpressions.Regex.Replace(
+            normalized,
+            @"\bspiderman\b",
+            "spider man",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+    }
 
     private static IEnumerable<string> Tokenize(string value) =>
         System.Text.RegularExpressions.Regex.Matches(Normalize(value), "[a-z0-9]+")

@@ -9,6 +9,7 @@ $repoRoot = Split-Path -Parent $PSScriptRoot
 $projectPath = Join-Path $repoRoot "src\BookNThings.Web\BookNThings.Web.csproj"
 $publishDir = Join-Path $repoRoot ".artifacts\BookNThingsApp"
 $launcherPath = Join-Path $PSScriptRoot "Start-BookNThings.ps1"
+$shortcutIconPath = Join-Path $repoRoot "src\BookNThings.Web\wwwroot\icons\bnt-icon.ico"
 
 function Find-Edge {
     $edgeCommand = Get-Command "msedge.exe" -ErrorAction SilentlyContinue
@@ -43,8 +44,6 @@ if (-not $powerShell) {
     $powerShell = Get-Command "powershell.exe" -ErrorAction Stop
 }
 
-$edgeIcon = Find-Edge
-
 $desktop = [Environment]::GetFolderPath("Desktop")
 $shortcutPath = Join-Path $desktop "BookNThings.lnk"
 
@@ -54,8 +53,8 @@ $shortcut.TargetPath = $powerShell.Source
 $shortcut.Arguments = "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$launcherPath`" -Url `"$Url`""
 $shortcut.WorkingDirectory = $repoRoot
 $shortcut.Description = "Open the local BookNThings app"
-if ($edgeIcon) {
-    $shortcut.IconLocation = "$edgeIcon,0"
+if (Test-Path $shortcutIconPath) {
+    $shortcut.IconLocation = "$shortcutIconPath,0"
 }
 $shortcut.Save()
 
